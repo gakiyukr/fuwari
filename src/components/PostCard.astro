@@ -44,7 +44,9 @@ const { remarkPluginFrontmatter } = await entry.render();
 // 计算文章是否过期
 const lastDate = updated ?? published;
 const now = new Date();
-const outdatedDays = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+const outdatedDays = Math.floor(
+	(now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+);
 const isOutdated = outdatedDays > 120;
 ---
 <div class:list={["card-base flex flex-col-reverse md:flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative", className]} style={style}>

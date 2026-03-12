@@ -5,7 +5,7 @@ const lastModified = new Date(date);
 const now = new Date();
 
 const days = Math.floor(
-  (now.getTime() - lastModified.getTime()) / (1000 * 60 * 60 * 24)
+	(now.getTime() - lastModified.getTime()) / (1000 * 60 * 60 * 24),
 );
 
 const outdated = days > 1; // 超过1天显示
