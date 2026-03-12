@@ -26,6 +26,32 @@ const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
 
 const { remarkPluginFrontmatter } = await entry.render();
+const lastDate = entry.data.updated ?? entry.data.published;
+const now = new Date();
+const outdatedDays = Math.floor(
+	(now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+);
+const isOutdated = outdatedDays >= 0;
+
+let outdatedLevel: "aging" | "stale" | "legacy" | null = null;
+let outdatedLabel = "";
+let outdatedIcon = "";
+
+if (isOutdated) {
+	if (outdatedDays > 180) {
+		outdatedLevel = "legacy";
+		outdatedLabel = "较早内容";
+		outdatedIcon = "material-symbols:alarm-on-rounded";
+	} else if (outdatedDays > 90) {
+		outdatedLevel = "stale";
+		outdatedLabel = "建议复核";
+		outdatedIcon = "material-symbols:history-rounded";
+	} else {
+		outdatedLevel = "aging";
+		outdatedLabel = "轻度过期";
+		outdatedIcon = "material-symbols:schedule-rounded";
+	}
+}
 
 const jsonLd = {
 	"@context": "https://schema.org",
@@ -84,16 +110,27 @@ const jsonLd = {
             </div>
 
             <!-- metadata -->
-            <div class="onload-animation">
-                <PostMetadata
-                        class="mb-5"
-                        published={entry.data.published}
-                        updated={entry.data.updated}
-                        tags={entry.data.tags}
-                        category={entry.data.category}
-                ></PostMetadata>
-                {!entry.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
-            </div>
+	            <div class="onload-animation">
+	                <PostMetadata
+	                        class="mb-5"
+	                        published={entry.data.published}
+	                        updated={entry.data.updated}
+	                        tags={entry.data.tags}
+	                        category={entry.data.category}
+	                ></PostMetadata>
+	                {isOutdated && (
+	                    <div class:list={["post-outdated", outdatedLevel && `post-outdated--${outdatedLevel}`]}>
+	                        <div class="post-outdated__badge">
+	                            <Icon name={outdatedIcon} class="text-[1rem]"></Icon>
+	                            <span>{outdatedLabel}</span>
+	                        </div>
+	                        <div class="post-outdated__text">
+	                            此文章最后更新于 {outdatedDays} 天前，部分信息可能已与当前情况不一致
+	                        </div>
+	                    </div>
+	                )}
+	                {!entry.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
+	            </div>
 
             <!-- always show cover as long as it has one -->
 
@@ -134,3 +171,97 @@ const jsonLd = {
     </div>
 
 </MainGridLayout>
+
+<style>
+	.post-outdated {
+		margin-bottom: 1.25rem;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem 0.95rem;
+		border: 1px solid var(--outdated-border);
+		border-left-width: 4px;
+		border-radius: 0.875rem;
+		background: var(--outdated-bg);
+		color: var(--outdated-text);
+		font-size: 0.9rem;
+		line-height: 1.55;
+	}
+
+	.post-outdated__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-shrink: 0;
+		padding: 0.34rem 0.62rem;
+		border-radius: 999px;
+		background: var(--outdated-badge-bg);
+		color: var(--outdated-accent);
+		font-weight: 700;
+		letter-spacing: 0.01em;
+	}
+
+	.post-outdated__text {
+		color: var(--outdated-text);
+	}
+
+	.post-outdated--aging {
+		--outdated-bg: color-mix(in oklab, var(--admonitions-color-tip) 10%, transparent);
+		--outdated-border: color-mix(in oklab, var(--admonitions-color-tip) 38%, transparent);
+		--outdated-badge-bg: color-mix(in oklab, var(--admonitions-color-tip) 16%, transparent);
+		--outdated-accent: color-mix(
+			in oklab,
+			var(--admonitions-color-tip) 82%,
+			black 12%
+		);
+		--outdated-text: color-mix(in oklab, var(--admonitions-color-tip) 62%, var(--text) 38%);
+	}
+
+	.post-outdated--stale {
+		--outdated-bg: color-mix(in oklab, var(--admonitions-color-warning) 11%, transparent);
+		--outdated-border: color-mix(in oklab, var(--admonitions-color-warning) 42%, transparent);
+		--outdated-badge-bg: color-mix(
+			in oklab,
+			var(--admonitions-color-warning) 17%,
+			transparent
+		);
+		--outdated-accent: color-mix(
+			in oklab,
+			var(--admonitions-color-warning) 88%,
+			black 12%
+		);
+		--outdated-text: color-mix(
+			in oklab,
+			var(--admonitions-color-warning) 58%,
+			var(--text) 42%
+		);
+	}
+
+	.post-outdated--legacy {
+		--outdated-bg: color-mix(in oklab, var(--admonitions-color-caution) 10%, transparent);
+		--outdated-border: color-mix(in oklab, var(--admonitions-color-caution) 44%, transparent);
+		--outdated-badge-bg: color-mix(
+			in oklab,
+			var(--admonitions-color-caution) 16%,
+			transparent
+		);
+		--outdated-accent: color-mix(
+			in oklab,
+			var(--admonitions-color-caution) 84%,
+			black 10%
+		);
+		--outdated-text: color-mix(
+			in oklab,
+			var(--admonitions-color-caution) 55%,
+			var(--text) 45%
+		);
+	}
+
+	@media (max-width: 768px) {
+		.post-outdated {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+	}
+</style>
