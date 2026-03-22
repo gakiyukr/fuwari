@@ -34,6 +34,7 @@ export type SiteConfig = {
 		enable: boolean;
 		depth: 1 | 2 | 3;
 	};
+	comments: CommentsConfig;
 
 	favicon: Favicon[];
 };
@@ -99,4 +100,26 @@ export type BlogPostData = {
 
 export type ExpressiveCodeConfig = {
 	theme: string;
+};
+
+export type CommentsConfig = {
+	enable: boolean;
+	provider: "giscus";
+	repo: string;
+	repoId: string;
+	category: string;
+	categoryId: string;
+	mapping:
+		| "pathname"
+		| "url"
+		| "title"
+		| "og:title"
+		| "specific"
+		| "number";
+	strict: boolean;
+	reactionsEnabled: boolean;
+	emitMetadata: boolean;
+	inputPosition: "top" | "bottom";
+	lang: string;
+	lazy: boolean;
 };

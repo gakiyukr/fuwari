@@ -1,5 +1,6 @@
 ---
 import path from "node:path";
+import Comments from "@components/Comments.astro";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import PostOutdatedNotice from "@components/PostOutdatedNotice.astro";
@@ -223,6 +224,8 @@ const jsonLd = {
 					)}
 				</section>
 			)}
+
+			<Comments />
 
 			{licenseConfig.enable && (
 				<License

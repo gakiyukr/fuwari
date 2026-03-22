@@ -29,6 +29,21 @@ export const siteConfig: SiteConfig = {
 		enable: true, // 是否在文章右侧显示目录
 		depth: 2, // 目录中显示的最大标题层级，范围 1-3
 	},
+	comments: {
+		enable: true,
+		provider: "giscus",
+		repo: "gakiyukr/fuwari",
+		repoId: "R_kgDORTJX0g",
+		category: "Announcements",
+		categoryId: "DIC_kwDORTJX0s4C4_3a",
+		mapping: "pathname",
+		strict: false,
+		reactionsEnabled: true,
+		emitMetadata: false,
+		inputPosition: "bottom",
+		lang: "zh-CN",
+		lazy: true,
+	},
 	favicon: [
 		// 留空数组使用默认 favicon
 		// {

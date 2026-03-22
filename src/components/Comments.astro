@@ -1,0 +1,155 @@
+---
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { siteConfig } from "../config";
+
+const commentsConfig = siteConfig.comments;
+const isConfigured =
+	commentsConfig.enable &&
+	commentsConfig.repo &&
+	commentsConfig.repoId &&
+	commentsConfig.category &&
+	commentsConfig.categoryId;
+
+const lightTheme = "preferred_color_scheme";
+const darkTheme = "preferred_color_scheme";
+---
+
+{
+	isConfigured && (
+		<section class="comments card-base mt-8 px-6 md:px-8 py-6">
+			<div class="comments__header">
+				<h2 class="comments__title">{i18n(I18nKey.comments)}</h2>
+				<p class="comments__caption">Powered by GitHub Discussions via Giscus</p>
+			</div>
+
+			<div class="giscus"></div>
+
+			<script
+				is:inline
+				define:vars={{
+					repo: commentsConfig.repo,
+					repoId: commentsConfig.repoId,
+					category: commentsConfig.category,
+					categoryId: commentsConfig.categoryId,
+					mapping: commentsConfig.mapping,
+					strict: commentsConfig.strict ? "1" : "0",
+					reactionsEnabled: commentsConfig.reactionsEnabled ? "1" : "0",
+					emitMetadata: commentsConfig.emitMetadata ? "1" : "0",
+					inputPosition: commentsConfig.inputPosition,
+					lang: commentsConfig.lang,
+					loading: commentsConfig.lazy ? "lazy" : "eager",
+					lightTheme,
+					darkTheme,
+				}}
+			>
+				const container = document.querySelector(".giscus");
+				if (container && !container.querySelector("script[data-giscus-script]")) {
+					const script = document.createElement("script");
+					script.src = "https://giscus.app/client.js";
+					script.async = true;
+					script.crossOrigin = "anonymous";
+					script.setAttribute("data-giscus-script", "true");
+					script.setAttribute("data-repo", repo);
+					script.setAttribute("data-repo-id", repoId);
+					script.setAttribute("data-category", category);
+					script.setAttribute("data-category-id", categoryId);
+					script.setAttribute("data-mapping", mapping);
+					script.setAttribute("data-strict", strict);
+					script.setAttribute("data-reactions-enabled", reactionsEnabled);
+					script.setAttribute("data-emit-metadata", emitMetadata);
+					script.setAttribute("data-input-position", inputPosition);
+					script.setAttribute(
+						"data-theme",
+						document.documentElement.classList.contains("dark")
+							? darkTheme
+							: lightTheme,
+					);
+					script.setAttribute("data-lang", lang);
+					script.setAttribute("data-loading", loading);
+					container.appendChild(script);
+				}
+
+				const setGiscusTheme = () => {
+					const iframe = document.querySelector("iframe.giscus-frame");
+					if (!iframe?.contentWindow) return;
+
+					iframe.contentWindow.postMessage(
+						{
+							giscus: {
+								setConfig: {
+									theme: document.documentElement.classList.contains("dark")
+										? darkTheme
+										: lightTheme,
+								},
+							},
+						},
+						"https://giscus.app",
+					);
+				};
+
+				const observer = new MutationObserver(setGiscusTheme);
+				observer.observe(document.documentElement, {
+					attributes: true,
+					attributeFilter: ["class"],
+				});
+
+				document.addEventListener("astro:after-swap", setGiscusTheme);
+				window.addEventListener("message", setGiscusTheme, { once: true });
+			</script>
+		</section>
+	)
+}
+
+{
+	commentsConfig.enable && !isConfigured && import.meta.env.DEV && (
+		<section class="comments comments--setup card-base mt-8 px-6 md:px-8 py-6">
+			<h2 class="comments__title">{i18n(I18nKey.comments)}</h2>
+			<p class="comments__setup">
+				Giscus 已接入代码，但当前仓库尚未完成配置。
+				请先在 GitHub 启用 Discussions、安装 giscus app，
+				再把 `src/config.ts` 里的 `repoId`、`category`、`categoryId` 填完整。
+			</p>
+		</section>
+	)
+}
+
+<style>
+	.comments {
+		margin-bottom: 1.5rem;
+	}
+
+	.comments__header {
+		margin-bottom: 1rem;
+	}
+
+	.comments__title {
+		margin: 0;
+		color: var(--deep-text);
+		font-size: 1.15rem;
+		font-weight: 700;
+	}
+
+	.comments__caption {
+		margin: 0.35rem 0 0;
+		color: color-mix(in oklab, var(--deep-text) 48%, transparent);
+		font-size: 0.84rem;
+	}
+
+	.comments :global(.giscus),
+	.comments :global(.giscus-frame) {
+		width: 100%;
+	}
+
+	.comments--setup {
+		border: 1px dashed color-mix(in oklab, var(--primary) 32%, transparent);
+		background: color-mix(in oklab, var(--primary) 5%, var(--card-bg) 95%);
+	}
+
+	.comments__setup {
+		margin: 0.8rem 0 0;
+		color: color-mix(in oklab, var(--deep-text) 70%, transparent);
+		font-size: 0.92rem;
+		line-height: 1.7;
+	}
+</style>
