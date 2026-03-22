@@ -22,7 +22,11 @@ function getElapsedDays(date: Date, now = new Date()) {
 	return Math.max(0, Math.floor((now.getTime() - date.getTime()) / MS_PER_DAY));
 }
 
-export function getPostFreshness(published: Date, updated?: Date, now = new Date()) {
+export function getPostFreshness(
+	published: Date,
+	updated?: Date,
+	now = new Date(),
+) {
 	const lastDate = updated ?? published;
 	const days = getElapsedDays(lastDate, now);
 
@@ -33,7 +37,7 @@ export function getPostFreshness(published: Date, updated?: Date, now = new Date
 			label: "较早内容",
 			title: "这篇文章可能已经落后于当前情况",
 			icon: "material-symbols:alarm-on-rounded",
-			description: `此文章最后更新于 ${days} 天前，部分信息可能已与当前情况不一致`,
+			description: `此文章最后更新于 ${days} 天前，部分信息可能已经严重过时`,
 		} satisfies PostFreshness;
 	}
 
@@ -54,7 +58,7 @@ export function getPostFreshness(published: Date, updated?: Date, now = new Date
 		label: "轻度过期",
 		title: "这篇文章可能需要留意时效性",
 		icon: "material-symbols:schedule-rounded",
-		description: `此文章最后更新于 ${days} 天前，部分信息可能已与当前情况不一致`,
+		description: `此文章最后更新于 ${days} 天前，部分信息可能需要重新确认`,
 	} satisfies PostFreshness;
 }
 

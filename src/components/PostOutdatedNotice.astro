@@ -4,20 +4,53 @@ import type { PostFreshness } from "@/utils/post-signals";
 
 interface Props {
 	status: PostFreshness;
+	published: Date;
+	updated?: Date;
+	historyHref?: string;
 }
 
-const { status } = Astro.props;
+const { status, published, updated, historyHref } = Astro.props;
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+function getElapsedDays(date: Date, now = new Date()) {
+	return Math.max(0, Math.floor((now.getTime() - date.getTime()) / MS_PER_DAY));
+}
+
+const publishedDays = getElapsedDays(published);
+const revisedDate = updated ?? published;
+const revisedDays = getElapsedDays(revisedDate);
+
+function getBannerText(level: PostFreshness["level"]) {
+	if (level === "legacy") {
+		return `文章初次发布于 ${publishedDays} 天前，最后修改于 ${revisedDays} 天前，其中部分方案、截图或结论可能已经明显过时，请优先参考最新信息。`;
+	}
+
+	if (level === "stale") {
+		return `文章初次发布于 ${publishedDays} 天前，最后修改于 ${revisedDays} 天前，部分技术细节可能已随时间演变，建议结合当前版本或官方文档交叉核对。`;
+	}
+
+	return `文章初次发布于 ${publishedDays} 天前，最后修改于 ${revisedDays} 天前，整体内容仍较新，但个别细节可能已随版本迭代发生变化。`;
+}
 ---
 
 <aside class:list={["post-freshness", `post-freshness--${status.level}`]}>
-	<div class="post-freshness__badge">
-		<Icon name={status.icon} class="text-[1rem]" />
-		<span>{status.label}</span>
+	<div class="post-freshness__lead">
+		<div class="post-freshness__icon-wrap">
+			<Icon name={status.icon} class="text-[1.1rem]" />
+		</div>
+
+		<p class="post-freshness__text">{getBannerText(status.level)}</p>
 	</div>
 
-	<div class="post-freshness__content">
-		<p class="post-freshness__text">{status.description}</p>
-	</div>
+	{
+		historyHref && (
+			<a class="post-freshness__action" href={historyHref}>
+				<Icon name="material-symbols:history-rounded" class="text-[1rem]" />
+				<span>查看修订历史</span>
+			</a>
+		)
+	}
 </aside>
 
 <style>
@@ -25,67 +58,128 @@ const { status } = Astro.props;
 		margin-bottom: 1.5rem;
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.625rem 0.875rem;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.8rem 0.95rem;
 		border: 1px solid var(--freshness-border);
-		border-left-width: 4px;
-		border-radius: 0.875rem;
+		border-radius: 1rem;
 		background: var(--freshness-bg);
 		color: var(--freshness-text);
-		font-size: 0.8125rem;
-		line-height: 1.45;
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, white 26%, transparent),
+			0 10px 24px color-mix(in oklab, var(--freshness-shadow) 10%, transparent);
 	}
 
-	.post-freshness__badge {
+	.post-freshness__lead {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-width: 0;
+	}
+
+	.post-freshness__icon-wrap {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.35rem;
+		justify-content: center;
 		flex-shrink: 0;
-		padding: 0.3rem 0.55rem;
-		border-radius: 999px;
-		background: var(--freshness-badge-bg);
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.85rem;
+		background: var(--freshness-icon-bg);
 		color: var(--freshness-accent);
-		font-weight: 700;
-	}
-
-	.post-freshness__content {
-		min-width: 0;
+		box-shadow: inset 0 1px 0 color-mix(in oklab, white 28%, transparent);
 	}
 
 	.post-freshness__text {
 		margin: 0;
 		color: var(--freshness-text);
+		font-size: 0.92rem;
+		font-weight: 600;
+		line-height: 1.6;
+	}
+
+	.post-freshness__action {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		flex-shrink: 0;
+		padding: 0.58rem 0.82rem;
+		border-radius: 0.8rem;
+		border: 1px solid var(--freshness-button-border);
+		background: var(--freshness-button-bg);
+		color: var(--freshness-button-text);
+		font-size: 0.84rem;
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			transform 160ms ease,
+			filter 160ms ease,
+			background 160ms ease,
+			border-color 160ms ease;
+	}
+
+	.post-freshness__action:hover {
+		filter: brightness(1.02);
+	}
+
+	.post-freshness__action:active {
+		transform: translateY(1px);
 	}
 
 	.post-freshness--aging {
-		--freshness-bg: color-mix(in oklab, var(--admonitions-color-tip) 10%, transparent);
-		--freshness-border: color-mix(in oklab, var(--admonitions-color-tip) 38%, transparent);
-		--freshness-badge-bg: color-mix(in oklab, var(--admonitions-color-tip) 16%, transparent);
-		--freshness-accent: color-mix(in oklab, var(--admonitions-color-tip) 82%, black 12%);
-		--freshness-text: color-mix(in oklab, var(--admonitions-color-tip) 62%, var(--text) 38%);
+		--freshness-bg: color-mix(in oklab, var(--admonitions-color-tip) 10%, var(--card-bg) 90%);
+		--freshness-border: color-mix(in oklab, var(--admonitions-color-tip) 24%, var(--line-divider) 76%);
+		--freshness-icon-bg: color-mix(in oklab, var(--admonitions-color-tip) 16%, transparent);
+		--freshness-accent: color-mix(in oklab, var(--admonitions-color-tip) 72%, black 14%);
+		--freshness-text: color-mix(in oklab, var(--admonitions-color-tip) 22%, var(--deep-text) 78%);
+		--freshness-button-bg: color-mix(in oklab, var(--admonitions-color-tip) 12%, transparent);
+		--freshness-button-border: color-mix(in oklab, var(--admonitions-color-tip) 18%, transparent);
+		--freshness-button-text: color-mix(in oklab, var(--admonitions-color-tip) 76%, black 16%);
+		--freshness-shadow: var(--admonitions-color-tip);
 	}
 
 	.post-freshness--stale {
-		--freshness-bg: color-mix(in oklab, var(--admonitions-color-warning) 11%, transparent);
-		--freshness-border: color-mix(in oklab, var(--admonitions-color-warning) 42%, transparent);
-		--freshness-badge-bg: color-mix(in oklab, var(--admonitions-color-warning) 17%, transparent);
-		--freshness-accent: color-mix(in oklab, var(--admonitions-color-warning) 88%, black 12%);
-		--freshness-text: color-mix(in oklab, var(--admonitions-color-warning) 58%, var(--text) 42%);
+		--freshness-bg: color-mix(in oklab, var(--admonitions-color-warning) 10%, var(--card-bg) 90%);
+		--freshness-border: color-mix(in oklab, var(--admonitions-color-warning) 28%, var(--line-divider) 72%);
+		--freshness-icon-bg: color-mix(in oklab, var(--admonitions-color-warning) 16%, transparent);
+		--freshness-accent: color-mix(in oklab, var(--admonitions-color-warning) 76%, black 14%);
+		--freshness-text: color-mix(in oklab, var(--admonitions-color-warning) 28%, var(--deep-text) 72%);
+		--freshness-button-bg: color-mix(in oklab, var(--admonitions-color-warning) 12%, transparent);
+		--freshness-button-border: color-mix(in oklab, var(--admonitions-color-warning) 20%, transparent);
+		--freshness-button-text: color-mix(in oklab, var(--admonitions-color-warning) 80%, black 14%);
+		--freshness-shadow: var(--admonitions-color-warning);
 	}
 
 	.post-freshness--legacy {
-		--freshness-bg: color-mix(in oklab, var(--admonitions-color-caution) 10%, transparent);
-		--freshness-border: color-mix(in oklab, var(--admonitions-color-caution) 44%, transparent);
-		--freshness-badge-bg: color-mix(in oklab, var(--admonitions-color-caution) 16%, transparent);
-		--freshness-accent: color-mix(in oklab, var(--admonitions-color-caution) 84%, black 10%);
-		--freshness-text: color-mix(in oklab, var(--admonitions-color-caution) 55%, var(--text) 45%);
+		--freshness-bg: color-mix(in oklab, var(--admonitions-color-caution) 12%, var(--card-bg) 88%);
+		--freshness-border: color-mix(in oklab, var(--admonitions-color-caution) 30%, var(--line-divider) 70%);
+		--freshness-icon-bg: color-mix(in oklab, var(--admonitions-color-caution) 18%, transparent);
+		--freshness-accent: color-mix(in oklab, var(--admonitions-color-caution) 74%, black 12%);
+		--freshness-text: color-mix(in oklab, var(--admonitions-color-caution) 30%, var(--deep-text) 70%);
+		--freshness-button-bg: color-mix(in oklab, var(--admonitions-color-caution) 14%, transparent);
+		--freshness-button-border: color-mix(in oklab, var(--admonitions-color-caution) 24%, transparent);
+		--freshness-button-text: color-mix(in oklab, var(--admonitions-color-caution) 76%, black 14%);
+		--freshness-shadow: var(--admonitions-color-caution);
 	}
 
 	@media (max-width: 768px) {
 		.post-freshness {
 			align-items: flex-start;
 			flex-direction: column;
-			gap: 0.5rem;
+			gap: 0.85rem;
+		}
+
+		.post-freshness__lead {
+			align-items: flex-start;
+		}
+
+		.post-freshness__text {
+			font-size: 0.88rem;
+		}
+
+		.post-freshness__action {
+			width: 100%;
+			justify-content: center;
 		}
 	}
 </style>

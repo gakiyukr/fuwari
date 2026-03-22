@@ -24,10 +24,6 @@ function isMeaningfulCommit(message: string) {
 	return !HIDDEN_COMMIT_PATTERNS.some((pattern) => pattern.test(message.trim()));
 }
 
-function stripCommitPrefix(message: string) {
-	return message.trim().replace(/^[a-z]+(\(.+\))?!?:\s*/i, "");
-}
-
 function getHistoryType(message: string): PostHistoryType {
 	const normalized = message.trim().toLowerCase();
 
@@ -83,7 +79,7 @@ export async function getPostHistory(filePath: string) {
 					date,
 					hash: hash.slice(0, 7),
 					rawMessage: message,
-					message: stripCommitPrefix(message),
+					message,
 					type,
 					typeLabel: getHistoryTypeLabel(type),
 				};

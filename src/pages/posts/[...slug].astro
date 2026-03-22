@@ -29,6 +29,7 @@ const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 const gitHistory = await getPostHistory(entry.filePath ?? "");
 const freshness = getPostFreshness(entry.data.published, entry.data.updated);
 const latestRevision = gitHistory[0];
+const previousRevisions = gitHistory.slice(1);
 
 const datetimeFormatter = new Intl.DateTimeFormat("zh-CN", {
 	dateStyle: "medium",
@@ -115,7 +116,14 @@ const jsonLd = {
 				category={entry.data.category}
 			/>
 
-			{freshness && <PostOutdatedNotice status={freshness} />}
+			{freshness && (
+				<PostOutdatedNotice
+					status={freshness}
+					published={entry.data.published}
+					updated={entry.data.updated}
+					historyHref={gitHistory.length > 0 ? "#post-history" : undefined}
+				/>
+			)}
 
 			{entry.data.image && (
 				<ImageWrapper
@@ -129,61 +137,90 @@ const jsonLd = {
 				<Content />
 			</Markdown>
 
-			{gitHistory.length > 1 && (
-				<section class="post-history">
+			{gitHistory.length > 0 && (
+				<section id="post-history" class="post-history">
 					<div class="post-history__hero">
 						<div>
 							<div class="post-history__eyebrow">Revision Trail</div>
-							<h2 class="post-history__title">Revision History</h2>
+							<h2 class="post-history__title">本文更新记录</h2>
 							<p class="post-history__description">
-								Only meaningful content changes are shown here. Routine formatting and maintenance commits are filtered out automatically.
+								展示与内容相关的主要修改，帮助读者快速了解这篇文章最近做过哪些更新。
 							</p>
 						</div>
 
 						<div class="post-history__stats">
 							<div class="post-history__stat">
-								<span class="post-history__stat-label">Meaningful entries</span>
+								<span class="post-history__stat-label">主要更新</span>
 								<strong>{gitHistory.length}</strong>
 							</div>
 							{latestRevision && (
 								<div class="post-history__stat">
-									<span class="post-history__stat-label">Latest revision</span>
+									<span class="post-history__stat-label">最近一次</span>
 									<strong>{dateFormatter.format(new Date(latestRevision.date))}</strong>
 								</div>
 							)}
 						</div>
 					</div>
 
-					<details class="post-history__details">
-						<summary>
-							<span class="post-history__summary-copy">
-								<Icon name="material-symbols:history-rounded" />
-								<span>Open timeline</span>
-							</span>
-							<span class="post-history__summary-count">{gitHistory.length} entries</span>
-						</summary>
-
-						<ol class="post-history__timeline">
-							{gitHistory.map((item) => (
-								<li class="post-history__item">
-									<div class="post-history__line" aria-hidden="true"></div>
-									<div class="post-history__dot" aria-hidden="true"></div>
-									<div class="post-history__card">
-										<div class="post-history__meta">
-											<time datetime={item.date}>
-												{datetimeFormatter.format(new Date(item.date))}
-											</time>
-											<span class:list={["post-history__type", `post-history__type--${item.type}`]}>
-												{item.typeLabel}
-											</span>
-										</div>
-										<div class="post-history__message">{item.message}</div>
-										<code class="post-history__hash">{item.hash}</code>
+					{latestRevision && (
+						<div class="post-history__latest">
+							<div class="post-history__latest-label">最近更新</div>
+							<div class="post-history__item post-history__item--latest">
+								<div class="post-history__line" aria-hidden="true"></div>
+								<div class="post-history__dot" aria-hidden="true"></div>
+								<div class="post-history__card">
+									<div class="post-history__meta">
+										<time datetime={latestRevision.date}>
+											{datetimeFormatter.format(new Date(latestRevision.date))}
+										</time>
+										<span
+											class:list={[
+												"post-history__type",
+												`post-history__type--${latestRevision.type}`,
+											]}
+										>
+											{latestRevision.typeLabel}
+										</span>
+										<code class="post-history__hash">{latestRevision.hash}</code>
 									</div>
-								</li>
-							))}
-						</ol>
-					</details>
+									<div class="post-history__message">{latestRevision.message}</div>
+								</div>
+							</div>
+						</div>
+					)}
+
+					{previousRevisions.length > 0 && (
+						<details class="post-history__details">
+							<summary>
+								<span class="post-history__summary-copy">
+									<Icon name="material-symbols:history-rounded" />
+									<span>查看全部修订</span>
+								</span>
+								<span class="post-history__summary-count">{previousRevisions.length} 条更早记录</span>
+							</summary>
+
+							<ol class="post-history__timeline">
+								{previousRevisions.map((item) => (
+									<li class="post-history__item">
+										<div class="post-history__line" aria-hidden="true"></div>
+										<div class="post-history__dot" aria-hidden="true"></div>
+										<div class="post-history__card">
+											<div class="post-history__meta">
+												<time datetime={item.date}>
+													{datetimeFormatter.format(new Date(item.date))}
+												</time>
+												<span class:list={["post-history__type", `post-history__type--${item.type}`]}>
+													{item.typeLabel}
+												</span>
+												<code class="post-history__hash">{item.hash}</code>
+											</div>
+											<div class="post-history__message">{item.message}</div>
+										</div>
+									</li>
+								))}
+							</ol>
+						</details>
+					)}
 				</section>
 			)}
 
@@ -295,15 +332,28 @@ const jsonLd = {
 		font-size: 0.92rem;
 	}
 
+	.post-history__latest {
+		margin-top: 1.15rem;
+	}
+
+	.post-history__latest-label {
+		margin-bottom: 0.7rem;
+		color: color-mix(in oklab, var(--deep-text) 52%, transparent);
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
 	.post-history__details summary {
 		list-style: none;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		padding: 0.85rem 1rem;
+		padding: 0.8rem 0.95rem;
 		border-radius: 1rem;
-		background: color-mix(in oklab, var(--btn-regular-bg) 72%, transparent);
+		background: color-mix(in oklab, var(--btn-regular-bg) 58%, transparent);
 		color: var(--deep-text);
 		cursor: pointer;
 		user-select: none;
@@ -337,6 +387,10 @@ const jsonLd = {
 		padding-left: 1.65rem;
 	}
 
+	.post-history__item--latest {
+		padding-left: 1.65rem;
+	}
+
 	.post-history__item:not(:last-child) {
 		padding-bottom: 0.9rem;
 	}
@@ -366,10 +420,11 @@ const jsonLd = {
 	}
 
 	.post-history__card {
-		padding: 0.9rem 1rem;
+		padding: 0.85rem 0.95rem;
 		border-radius: 1rem;
-		border: 1px solid color-mix(in oklab, var(--line-divider) 82%, transparent);
-		background: color-mix(in oklab, var(--card-bg) 80%, var(--btn-regular-bg) 20%);
+		border: 1px solid color-mix(in oklab, var(--line-divider) 76%, transparent);
+		background: color-mix(in oklab, var(--card-bg) 88%, var(--btn-regular-bg) 12%);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, white 40%, transparent);
 	}
 
 	.post-history__meta {
@@ -407,15 +462,13 @@ const jsonLd = {
 	}
 
 	.post-history__message {
-		margin-top: 0.55rem;
+		margin-top: 0.45rem;
 		color: var(--deep-text);
-		font-size: 0.95rem;
-		line-height: 1.65;
+		font-size: 0.92rem;
+		line-height: 1.6;
 	}
 
 	.post-history__hash {
-		display: inline-block;
-		margin-top: 0.7rem;
 		padding: 0.2rem 0.5rem;
 		border-radius: 999px;
 		background: color-mix(in oklab, var(--btn-regular-bg) 86%, transparent);
