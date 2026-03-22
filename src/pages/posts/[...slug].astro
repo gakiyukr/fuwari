@@ -138,9 +138,20 @@ const jsonLd = {
 				<Content />
 			</Markdown>
 
-			{gitHistory.length > 0 && (
-				<section id="post-history" class="post-history">
-					<div class="post-history__hero">
+				{gitHistory.length > 0 && (
+					<details id="post-history" class="post-history__panel" open>
+						<summary class="post-history__panel-summary">
+							<span class="post-history__panel-copy">
+								<Icon name="material-symbols:history-rounded" />
+								<span>本文更新记录</span>
+							</span>
+							<span class="post-history__panel-meta">
+								<span>{gitHistory.length} 次更新</span>
+								<Icon class="post-history__panel-chevron" name="material-symbols:keyboard-arrow-down-rounded" />
+							</span>
+						</summary>
+						<section class="post-history">
+							<div class="post-history__hero">
 						<div>
 							<div class="post-history__eyebrow">Revision Trail</div>
 							<h2 class="post-history__title">本文更新记录</h2>
@@ -163,8 +174,8 @@ const jsonLd = {
 						</div>
 					</div>
 
-					{latestRevision && (
-						<div class="post-history__latest">
+							{latestRevision && (
+								<div class="post-history__latest">
 							<div class="post-history__latest-label">最近更新</div>
 							<div class="post-history__item post-history__item--latest">
 								<div class="post-history__line" aria-hidden="true"></div>
@@ -190,8 +201,8 @@ const jsonLd = {
 						</div>
 					)}
 
-					{previousRevisions.length > 0 && (
-						<details class="post-history__details">
+							{previousRevisions.length > 0 && (
+								<details class="post-history__details">
 							<summary>
 								<span class="post-history__summary-copy">
 									<Icon name="material-symbols:history-rounded" />
@@ -221,20 +232,21 @@ const jsonLd = {
 								))}
 							</ol>
 						</details>
-					)}
-				</section>
-			)}
+							)}
+						</section>
+					</details>
+				)}
 
-			<Comments />
+				{licenseConfig.enable && (
+					<License
+						title={entry.data.title}
+						slug={entry.slug}
+						pubDate={entry.data.published}
+					/>
+				)}
 
-			{licenseConfig.enable && (
-				<License
-					title={entry.data.title}
-					slug={entry.slug}
-					pubDate={entry.data.published}
-				/>
-			)}
-		</article>
+				<Comments />
+			</article>
 	</div>
 </MainGridLayout>
 
@@ -263,14 +275,65 @@ const jsonLd = {
 		background: color-mix(in oklab, var(--btn-regular-bg) 88%, transparent);
 	}
 
-	.post-history {
+	.post-history__panel {
 		margin: 2.5rem 0 2rem;
-		padding: 1.25rem;
 		border-radius: 1.25rem;
 		border: 1px solid color-mix(in oklab, var(--line-divider) 90%, transparent);
+		background: var(--card-bg);
+		overflow: clip;
+	}
+
+	.post-history__panel-summary {
+		list-style: none;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.95rem 1.1rem;
+		cursor: pointer;
+		user-select: none;
+		color: var(--deep-text);
+	}
+
+	.post-history__panel-summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.post-history__panel-copy,
+	.post-history__panel-meta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.post-history__panel-copy {
+		font-size: 0.95rem;
+		font-weight: 700;
+	}
+
+	.post-history__panel-meta {
+		color: color-mix(in oklab, var(--deep-text) 54%, transparent);
+		font-size: 0.82rem;
+		font-weight: 600;
+	}
+
+	.post-history__panel-chevron {
+		font-size: 1.2rem;
+		transition: transform 0.18s ease;
+	}
+
+	.post-history__panel[open] .post-history__panel-chevron {
+		transform: rotate(180deg);
+	}
+
+	.post-history {
+		margin: 0;
+		padding: 0 1.25rem 1.25rem;
+		border-radius: 0;
+		border: 0;
 		background:
 			radial-gradient(
-				circle at top right,
+					circle at top right,
 				color-mix(in oklab, var(--primary) 9%, transparent),
 				transparent 30%
 			),
@@ -484,6 +547,10 @@ const jsonLd = {
 			padding: 1rem;
 		}
 
+		.post-history__panel-summary {
+			padding: 0.9rem 1rem;
+		}
+
 		.post-history__hero {
 			flex-direction: column;
 			gap: 1rem;
@@ -499,6 +566,10 @@ const jsonLd = {
 
 		.post-history__details summary {
 			padding: 0.8rem 0.9rem;
+		}
+
+		.post-history__panel-meta {
+			font-size: 0.78rem;
 		}
 	}
 </style>
