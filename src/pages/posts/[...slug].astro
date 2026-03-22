@@ -9,6 +9,7 @@ import { getSortedPosts } from "@utils/content-utils";
 import { getDir, getPostUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
+import { getPostHistory } from "@/utils/git-log";
 import ImageWrapper from "../../components/misc/ImageWrapper.astro";
 import PostMetadata from "../../components/PostMeta.astro";
 import { profileConfig, siteConfig } from "../../config";
@@ -143,6 +144,33 @@ const jsonLd = {
                 <Content />
             </Markdown>
 
+			{history.length > 1 && (
+  <div class="post-history onload-animation">
+    <div class="post-history__header">
+      <Icon name="material-symbols:history-rounded" class="text-[1.2rem]" />
+      <span>文章修订历史（{history.length} 次）</span>
+    </div>
+
+    <details class="post-history__details">
+      <summary>查看变更记录</summary>
+
+      <ul class="post-history__list">
+        {history.map(item => (
+          <li class="post-history__item">
+            <div class="post-history__top">
+              <span class="date">
+                {new Date(item.date).toLocaleString()}
+              </span>
+              <span class="hash">{item.hash}</span>
+            </div>
+            <div class="msg">{item.message}</div>
+          </li>
+        ))}
+      </ul>
+    </details>
+  </div>
+)}
+
             {licenseConfig.enable && <License title={entry.data.title} slug={entry.slug} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}
 
         </div>
@@ -173,6 +201,64 @@ const jsonLd = {
 </MainGridLayout>
 
 <style>
+.post-history{
+  margin: 2rem 0;
+  padding: 1rem 1.1rem;
+  border-radius: 0.9rem;
+  background: var(--card-bg);
+  border: 1px solid var(--line-divider);
+}
+
+.post-history__header{
+  display:flex;
+  align-items:center;
+  gap:0.4rem;
+  font-weight:600;
+  margin-bottom:0.5rem;
+}
+
+.post-history__details summary{
+  cursor:pointer;
+  font-size:0.9rem;
+  color: var(--primary);
+  margin-bottom:0.5rem;
+}
+
+.post-history__list{
+  margin-top:0.5rem;
+  padding:0;
+  list-style:none;
+}
+
+.post-history__item{
+  padding:0.7rem 0.8rem;
+  border-radius:0.7rem;
+  background: color-mix(in oklab, var(--card-bg) 92%, black 8%);
+  margin-bottom:0.6rem;
+  transition: all .2s ease;
+}
+
+.post-history__item:hover{
+  background: color-mix(in oklab, var(--card-bg) 85%, black 15%);
+}
+
+.post-history__top{
+  display:flex;
+  justify-content:space-between;
+  font-size:0.75rem;
+  color:var(--text-secondary);
+}
+
+.post-history .hash{
+  color: var(--primary);
+  font-family: monospace;
+}
+
+.post-history .msg{
+  margin-top:0.25rem;
+  font-size:0.9rem;
+}
+
 	.post-outdated {
 		margin-bottom: 1.25rem;
 		display: flex;
