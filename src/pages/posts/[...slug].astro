@@ -199,25 +199,97 @@ const jsonLd = {
 </MainGridLayout>
 
 <style>
-.post-history {
-	margin: 2rem 0;
-	padding: 1rem;
-	border-radius: 12px;
-	background: var(--card-bg);
-	border: 1px solid var(--line-divider);
+.post-history{
+  margin:2rem 0;
+  padding:1rem 1.2rem;
+
+  border-radius:14px;
+
+  background:var(--card-bg);
+  border:1px solid var(--line-divider);
 }
 
-.post-history li {
-	padding: 8px;
-	border-radius: 8px;
-	background: rgba(255,255,255,0.03);
-	margin-bottom: 6px;
+.post-history__header{
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  font-weight:600;
+  font-size:0.95rem;
+
+  margin-bottom:0.6rem;
 }
 
-.post-outdated {
-	margin-bottom: 1rem;
-	padding: 0.6rem 0.8rem;
-	border-radius: 8px;
-	background: rgba(255, 150, 0, 0.1);
+.post-history details summary{
+  cursor:pointer;
+  font-size:0.8rem;
+  color:var(--text-secondary);
+}
+
+.post-history ul{
+  margin-top:0.6rem;
+  padding:0;
+  list-style:none;
+}
+
+.post-history li{
+  position:relative;
+  padding:0.7rem 0.8rem 0.7rem 1.2rem;
+
+  border-radius:10px;
+  margin-bottom:0.5rem;
+
+  background:color-mix(in oklab, var(--card-bg) 92%, black 8%);
+}
+
+/* 时间轴线 */
+.post-history li::before{
+  content:"";
+  position:absolute;
+  left:6px;
+  top:10px;
+  bottom:10px;
+  width:2px;
+  background:var(--line-divider);
+}
+
+/* 时间 */
+.post-history .date{
+  font-size:0.7rem;
+  color:var(--text-secondary);
+}
+
+/* commit hash */
+.post-history .hash{
+  font-family:monospace;
+  font-size:0.7rem;
+  color:var(--primary);
+}
+
+/* message */
+.post-history .msg{
+  margin-top:2px;
+  font-size:0.85rem;
+}
+
+.post-outdated{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  margin-bottom:1.2rem;
+  padding:0.6rem 0.9rem;
+
+  font-size:0.85rem;
+
+  border-radius:10px;
+  border-left:3px solid var(--primary);
+
+  background:color-mix(in oklab, var(--primary) 8%, transparent);
+  color:var(--text-secondary);
+}
+
+.post-outdated svg{
+  color:var(--primary);
 }
 </style>
