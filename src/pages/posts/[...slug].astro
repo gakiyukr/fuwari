@@ -25,13 +25,18 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
-
 const { remarkPluginFrontmatter } = await entry.render();
+
+// ✅ 修订记录（关键）
+const gitHistory = await getPostHistory(entry.filePath);
+
+// ===== 过期提醒 =====
 const lastDate = entry.data.updated ?? entry.data.published;
 const now = new Date();
 const outdatedDays = Math.floor(
 	(now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
 );
+
 const isOutdated = outdatedDays >= 0;
 
 let outdatedLevel: "aging" | "stale" | "legacy" | null = null;
@@ -54,6 +59,7 @@ if (isOutdated) {
 	}
 }
 
+// ===== SEO =====
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "BlogPosting",
@@ -69,285 +75,149 @@ const jsonLd = {
 	inLanguage: entry.data.lang
 		? entry.data.lang.replace("_", "-")
 		: siteConfig.lang.replace("_", "-"),
-	// TODO include cover image here
 };
 ---
-<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings}>
-    <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
-    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
-        <div id="post-container" class:list={["card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full ",
-            {}
-        ]}>
-            <!-- word count and reading time -->
-            <div class="flex flex-row text-black/30 dark:text-white/30 gap-5 mb-3 transition onload-animation">
-                <div class="flex flex-row items-center">
-                    <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
-                        <Icon name="material-symbols:notes-rounded"></Icon>
-                    </div>
-                    <div class="text-sm">{remarkPluginFrontmatter.words} {" " + i18n(I18nKey.wordsCount)}</div>
-                </div>
-                <div class="flex flex-row items-center">
-                    <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
-                        <Icon name="material-symbols:schedule-outline-rounded"></Icon>
-                    </div>
-                    <div class="text-sm">
-                        {remarkPluginFrontmatter.minutes} {" " + i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
-                    </div>
-                </div>
-            </div>
 
-            <!-- title -->
-            <div class="relative onload-animation">
-                <div
-                    data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title"
-                    class="transition w-full block font-bold mb-3
-                    text-3xl md:text-[2.25rem]/[2.75rem]
-                    text-black/90 dark:text-white/90
-                    md:before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
-                    before:absolute before:top-[0.75rem] before:left-[-1.125rem]
-                ">
-                    {entry.data.title}
-                </div>
-            </div>
+<MainGridLayout
+	banner={entry.data.image}
+	title={entry.data.title}
+	description={entry.data.description}
+	lang={entry.data.lang}
+	setOGTypeArticle={true}
+	headings={headings}
+>
+	<script
+		is:inline
+		slot="head"
+		type="application/ld+json"
+		set:html={JSON.stringify(jsonLd)}
+	></script>
 
-            <!-- metadata -->
-	            <div class="onload-animation">
-	                <PostMetadata
-	                        class="mb-5"
-	                        published={entry.data.published}
-	                        updated={entry.data.updated}
-	                        tags={entry.data.tags}
-	                        category={entry.data.category}
-	                ></PostMetadata>
-	                {isOutdated && (
-	                    <div class:list={["post-outdated", outdatedLevel && `post-outdated--${outdatedLevel}`]}>
-	                        <div class="post-outdated__badge">
-	                            <Icon name={outdatedIcon} class="text-[1rem]"></Icon>
-	                            <span>{outdatedLabel}</span>
-	                        </div>
-	                        <div class="post-outdated__text">
-	                            此文章最后更新于 {outdatedDays} 天前，部分信息可能已与当前情况不一致
-	                        </div>
-	                    </div>
-	                )}
-	                {!entry.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
-	            </div>
+	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
+		<div id="post-container" class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full">
 
-            <!-- always show cover as long as it has one -->
+			<!-- 阅读信息 -->
+			<div class="flex flex-row text-black/30 dark:text-white/30 gap-5 mb-3 transition onload-animation">
+				<div class="flex items-center">
+					<div class="h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 flex items-center justify-center mr-2">
+						<Icon name="material-symbols:notes-rounded" />
+					</div>
+					<div class="text-sm">
+						{remarkPluginFrontmatter.words} {i18n(I18nKey.wordsCount)}
+					</div>
+				</div>
 
-            {entry.data.image &&
-                <ImageWrapper id="post-cover" src={entry.data.image} basePath={path.join("content/posts/", getDir(entry.id))} class="mb-8 rounded-xl banner-container onload-animation"/>
-            }
+				<div class="flex items-center">
+					<div class="h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 flex items-center justify-center mr-2">
+						<Icon name="material-symbols:schedule-outline-rounded" />
+					</div>
+					<div class="text-sm">
+						{remarkPluginFrontmatter.minutes}{" "}
+						{i18n(
+							remarkPluginFrontmatter.minutes === 1
+								? I18nKey.minuteCount
+								: I18nKey.minutesCount,
+						)}
+					</div>
+				</div>
+			</div>
 
+			<!-- 标题 -->
+			<div class="font-bold mb-3 text-3xl md:text-[2.25rem]/[2.75rem]">
+				{entry.data.title}
+			</div>
 
-            <Markdown class="mb-6 markdown-content onload-animation">
-                <Content />
-            </Markdown>
+			<!-- 元数据 -->
+			<PostMetadata
+				class="mb-5"
+				published={entry.data.published}
+				updated={entry.data.updated}
+				tags={entry.data.tags}
+				category={entry.data.category}
+			/>
 
-			{history.length > 1 && (
-  <div class="post-history onload-animation">
-    <div class="post-history__header">
-      <Icon name="material-symbols:history-rounded" class="text-[1.2rem]" />
-      <span>文章修订历史（{history.length} 次）</span>
-    </div>
+			<!-- 过期提醒 -->
+			{isOutdated && (
+				<div class={`post-outdated post-outdated--${outdatedLevel}`}>
+					<Icon name={outdatedIcon} />
+					<span>
+						此文章最后更新于 {outdatedDays} 天前，内容可能已过时
+					</span>
+				</div>
+			)}
 
-    <details class="post-history__details">
-      <summary>查看变更记录</summary>
+			<!-- 封面 -->
+			{entry.data.image && (
+				<ImageWrapper
+					src={entry.data.image}
+					basePath={path.join("content/posts/", getDir(entry.id))}
+					class="mb-8 rounded-xl"
+				/>
+			)}
 
-      <ul class="post-history__list">
-        {history.map(item => (
-          <li class="post-history__item">
-            <div class="post-history__top">
-              <span class="date">
-                {new Date(item.date).toLocaleString()}
-              </span>
-              <span class="hash">{item.hash}</span>
-            </div>
-            <div class="msg">{item.message}</div>
-          </li>
-        ))}
-      </ul>
-    </details>
-  </div>
-)}
+			<!-- 正文 -->
+			<Markdown class="mb-6 markdown-content">
+				<Content />
+			</Markdown>
 
-            {licenseConfig.enable && <License title={entry.data.title} slug={entry.slug} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}
+			<!-- ✅ 修订记录 -->
+			{gitHistory.length > 1 && (
+				<div class="post-history">
+					<div class="post-history__header">
+						<Icon name="material-symbols:history-rounded" />
+						<span>文章修订历史（{gitHistory.length} 次）</span>
+					</div>
 
-        </div>
-    </div>
+					<details>
+						<summary>查看变更记录</summary>
 
-    <div class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full">
-        <a href={entry.data.nextSlug ? getPostUrlBySlug(entry.data.nextSlug) : "#"}
-           class:list={["w-full font-bold overflow-hidden active:scale-95", {"pointer-events-none": !entry.data.nextSlug}]}>
-            {entry.data.nextSlug && <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-start gap-4" >
-                <Icon name="material-symbols:chevron-left-rounded" class="text-[2rem] text-[var(--primary)]" />
-                <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)] text-black/75 dark:text-white/75">
-                    {entry.data.nextTitle}
-                </div>
-            </div>}
-        </a>
+						<ul>
+							{gitHistory.map((item) => (
+								<li>
+									<div class="flex justify-between text-xs text-gray-400">
+										<span>{new Date(item.date).toLocaleString()}</span>
+										<span class="text-primary">{item.hash}</span>
+									</div>
+									<div class="text-sm mt-1">{item.message}</div>
+								</li>
+							))}
+						</ul>
+					</details>
+				</div>
+			)}
 
-        <a href={entry.data.prevSlug ? getPostUrlBySlug(entry.data.prevSlug) : "#"}
-           class:list={["w-full font-bold overflow-hidden active:scale-95", {"pointer-events-none": !entry.data.prevSlug}]}>
-            {entry.data.prevSlug && <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-end gap-4">
-                <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)] text-black/75 dark:text-white/75">
-                    {entry.data.prevTitle}
-                </div>
-                <Icon name="material-symbols:chevron-right-rounded" class="text-[2rem] text-[var(--primary)]" />
-            </div>}
-        </a>
-    </div>
-
+			<!-- 版权 -->
+			{licenseConfig.enable && (
+				<License
+					title={entry.data.title}
+					slug={entry.slug}
+					pubDate={entry.data.published}
+				/>
+			)}
+		</div>
+	</div>
 </MainGridLayout>
 
 <style>
-.post-history{
-  margin: 2rem 0;
-  padding: 1rem 1.1rem;
-  border-radius: 0.9rem;
-  background: var(--card-bg);
-  border: 1px solid var(--line-divider);
+.post-history {
+	margin: 2rem 0;
+	padding: 1rem;
+	border-radius: 12px;
+	background: var(--card-bg);
+	border: 1px solid var(--line-divider);
 }
 
-.post-history__header{
-  display:flex;
-  align-items:center;
-  gap:0.4rem;
-  font-weight:600;
-  margin-bottom:0.5rem;
+.post-history li {
+	padding: 8px;
+	border-radius: 8px;
+	background: rgba(255,255,255,0.03);
+	margin-bottom: 6px;
 }
 
-.post-history__details summary{
-  cursor:pointer;
-  font-size:0.9rem;
-  color: var(--primary);
-  margin-bottom:0.5rem;
+.post-outdated {
+	margin-bottom: 1rem;
+	padding: 0.6rem 0.8rem;
+	border-radius: 8px;
+	background: rgba(255, 150, 0, 0.1);
 }
-
-.post-history__list{
-  margin-top:0.5rem;
-  padding:0;
-  list-style:none;
-}
-
-.post-history__item{
-  padding:0.7rem 0.8rem;
-  border-radius:0.7rem;
-  background: color-mix(in oklab, var(--card-bg) 92%, black 8%);
-  margin-bottom:0.6rem;
-  transition: all .2s ease;
-}
-
-.post-history__item:hover{
-  background: color-mix(in oklab, var(--card-bg) 85%, black 15%);
-}
-
-.post-history__top{
-  display:flex;
-  justify-content:space-between;
-  font-size:0.75rem;
-  color:var(--text-secondary);
-}
-
-.post-history .hash{
-  color: var(--primary);
-  font-family: monospace;
-}
-
-.post-history .msg{
-  margin-top:0.25rem;
-  font-size:0.9rem;
-}
-
-	.post-outdated {
-		margin-bottom: 1.25rem;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem 0.95rem;
-		border: 1px solid var(--outdated-border);
-		border-left-width: 4px;
-		border-radius: 0.875rem;
-		background: var(--outdated-bg);
-		color: var(--outdated-text);
-		font-size: 0.9rem;
-		line-height: 1.55;
-	}
-
-	.post-outdated__badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		flex-shrink: 0;
-		padding: 0.34rem 0.62rem;
-		border-radius: 999px;
-		background: var(--outdated-badge-bg);
-		color: var(--outdated-accent);
-		font-weight: 700;
-		letter-spacing: 0.01em;
-	}
-
-	.post-outdated__text {
-		color: var(--outdated-text);
-	}
-
-	.post-outdated--aging {
-		--outdated-bg: color-mix(in oklab, var(--admonitions-color-tip) 10%, transparent);
-		--outdated-border: color-mix(in oklab, var(--admonitions-color-tip) 38%, transparent);
-		--outdated-badge-bg: color-mix(in oklab, var(--admonitions-color-tip) 16%, transparent);
-		--outdated-accent: color-mix(
-			in oklab,
-			var(--admonitions-color-tip) 82%,
-			black 12%
-		);
-		--outdated-text: color-mix(in oklab, var(--admonitions-color-tip) 62%, var(--text) 38%);
-	}
-
-	.post-outdated--stale {
-		--outdated-bg: color-mix(in oklab, var(--admonitions-color-warning) 11%, transparent);
-		--outdated-border: color-mix(in oklab, var(--admonitions-color-warning) 42%, transparent);
-		--outdated-badge-bg: color-mix(
-			in oklab,
-			var(--admonitions-color-warning) 17%,
-			transparent
-		);
-		--outdated-accent: color-mix(
-			in oklab,
-			var(--admonitions-color-warning) 88%,
-			black 12%
-		);
-		--outdated-text: color-mix(
-			in oklab,
-			var(--admonitions-color-warning) 58%,
-			var(--text) 42%
-		);
-	}
-
-	.post-outdated--legacy {
-		--outdated-bg: color-mix(in oklab, var(--admonitions-color-caution) 10%, transparent);
-		--outdated-border: color-mix(in oklab, var(--admonitions-color-caution) 44%, transparent);
-		--outdated-badge-bg: color-mix(
-			in oklab,
-			var(--admonitions-color-caution) 16%,
-			transparent
-		);
-		--outdated-accent: color-mix(
-			in oklab,
-			var(--admonitions-color-caution) 84%,
-			black 10%
-		);
-		--outdated-text: color-mix(
-			in oklab,
-			var(--admonitions-color-caution) 55%,
-			var(--text) 45%
-		);
-	}
-
-	@media (max-width: 768px) {
-		.post-outdated {
-			align-items: flex-start;
-			flex-direction: column;
-			gap: 0.5rem;
-		}
-	}
 </style>
