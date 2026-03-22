@@ -2,7 +2,8 @@
 title: 香港平价酒店：启德机场上的方舱医院——启航1331
 published: 2026-03-15
 description: How code blocks look in Markdown using Expressive Code.
-tags: [Markdown, Blogging, Demo]
+tags:
+  - 旅行
 category: Examples
 draft: false
 ---
@@ -37,7 +38,7 @@ draft: false
 
 
 ## 交通方式
-从其他地区搭乘屯马线到达港铁启德站，从 A 出口到达地面，在巴士站（启德-港铁 A 出口；沐安街）搭乘前往前往启德邮轮码头的巴士即可。
+搭乘屯马线到达港铁启德站，从 A 出口到达地面，在巴士站（启德-港铁 A 出口；沐安街）搭乘前往前往启德邮轮码头的巴士即可。
 
 :::TIP
 因酒店大堂位于 Gate5，因此请不要在承景街下车。
@@ -47,5 +48,6 @@ draft: false
 
 ![](https://img.040407.xyz/img/2026/03/3290cf09261dab62c5a6e3c17df7b8bf.webp)
 
+可扫描下图二维码查阅酒店摆渡车公告：
 
-## 图片
+## 房间图片

@@ -5,12 +5,10 @@ tags: [Markdown, Blogging, Demo]
 category: Examples
 draft: true
 ---
-
-# This Article is a Draft
-
-This article is currently in a draft state and is not published. Therefore, it will not be visible to the general audience. The content is still a work in progress and may require further editing and review.
-
-When the article is ready for publication, you can update the "draft" field to "false" in the Frontmatter:
+# 本文章為草稿
+這篇文章目前處於草稿狀態，尚未發布，因此不會對公眾顯示。內容仍在編寫中，可能需要進一步編輯和審核。  
+  
+當文章準備發布時，你可以將 Frontmatter 中的 "draft" 字段修改為 "false"：
 
 ```markdown
 ---
