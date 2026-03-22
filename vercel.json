@@ -1,6 +1,8 @@
 {
 	"installCommand": "pnpm install",
 	"buildCommand": "pnpm build",
-	"outputDirectory": "dist"
-	"git": {"depth": 0}
+	"outputDirectory": "dist",
+	"git": {
+		"depth": 0
+	}
 }
