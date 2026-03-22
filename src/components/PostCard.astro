@@ -4,6 +4,10 @@ import path from "node:path";
 import { Icon } from "astro-icon/components";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
+import {
+	getPostActivityBadges,
+	getPostFreshness,
+} from "../utils/post-signals";
 import { getDir } from "../utils/url-utils";
 import ImageWrapper from "./misc/ImageWrapper.astro";
 import PostMetadata from "./PostMeta.astro";
@@ -41,32 +45,8 @@ const hasCover = image !== undefined && image !== null && image !== "";
 const coverWidth = "28%";
 
 const { remarkPluginFrontmatter } = await entry.render();
-const lastDate = updated ?? published;
-const now = new Date();
-const outdatedDays = Math.floor(
-	(now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
-);
-const isOutdated = outdatedDays >= 0;
-
-let outdatedLevel: "aging" | "stale" | "legacy" | null = null;
-let outdatedLabel = "";
-let outdatedIcon = "";
-
-if (isOutdated) {
-	if (outdatedDays > 180) {
-		outdatedLevel = "legacy";
-		outdatedLabel = "较早内容";
-		outdatedIcon = "material-symbols:alarm-on-rounded";
-	} else if (outdatedDays > 90) {
-		outdatedLevel = "stale";
-		outdatedLabel = "建议复核";
-		outdatedIcon = "material-symbols:history-rounded";
-	} else {
-		outdatedLevel = "aging";
-		outdatedLabel = "轻度过期";
-		outdatedIcon = "material-symbols:schedule-rounded";
-	}
-}
+const freshness = getPostFreshness(published, updated);
+const activityBadges = getPostActivityBadges(published, updated);
 ---
 
 <div
@@ -114,16 +94,26 @@ if (isOutdated) {
 			class="mb-4"
 		></PostMetadata>
 
-		{isOutdated && (
-			<div class:list={["post-outdated", outdatedLevel && `post-outdated--${outdatedLevel}`]}>
-				<div class="post-outdated__badge">
-					<Icon name={outdatedIcon} class="text-[1rem]"></Icon>
-					<span>{outdatedLabel}</span>
+		{(activityBadges.length > 0 || freshness) && (
+			<>
+				<div class="post-signals">
+					{activityBadges.map((badge) => (
+						<div class:list={["post-signal", `post-signal--${badge.kind}`]}>
+							<Icon name={badge.icon} class="text-[0.95rem]" />
+							<span>{badge.label}</span>
+						</div>
+					))}
 				</div>
-				<div class="post-outdated__text">
-					此文章最后更新于 {outdatedDays} 天前，部分信息可能已与当前情况不一致
-				</div>
-			</div>
+				{freshness && (
+					<div class:list={["post-outdated", `post-outdated--${freshness.level}`]}>
+						<div class="post-outdated__badge">
+							<Icon name={freshness.icon} class="text-[1rem]"></Icon>
+							<span>{freshness.label}</span>
+						</div>
+						<div class="post-outdated__text">{freshness.description}</div>
+					</div>
+				)}
+			</>
 		)}
 
 		<div
@@ -209,6 +199,77 @@ if (isOutdated) {
 <div class="transition border-t-[1px] border-dashed mx-6 border-black/10 dark:border-white/[0.15] last:border-t-0 md:hidden"></div>
 
 <style define:vars={{ coverWidth }}>
+	.post-signals {
+		margin-bottom: 0.625rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+	}
+
+	.post-signal {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.38rem 0.72rem;
+		border-radius: 999px;
+		border: 1px solid var(--signal-border);
+		background:
+			linear-gradient(
+				135deg,
+				color-mix(in oklab, var(--signal-accent) 10%, transparent),
+				transparent
+			),
+			var(--signal-bg);
+		color: var(--signal-text);
+		font-size: 0.74rem;
+		font-weight: 700;
+		letter-spacing: 0.03em;
+	}
+
+	.post-signal__meta {
+		padding-left: 0.1rem;
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0;
+		opacity: 0.7;
+	}
+
+	.post-signal--new {
+		--signal-accent: var(--admonitions-color-tip);
+		--signal-bg: color-mix(in oklab, var(--admonitions-color-tip) 9%, transparent);
+		--signal-border: color-mix(in oklab, var(--admonitions-color-tip) 24%, transparent);
+		--signal-text: color-mix(in oklab, var(--admonitions-color-tip) 72%, var(--deep-text) 28%);
+	}
+
+	.post-signal--updated {
+		--signal-accent: var(--primary);
+		--signal-bg: color-mix(in oklab, var(--primary) 9%, transparent);
+		--signal-border: color-mix(in oklab, var(--primary) 24%, transparent);
+		--signal-text: color-mix(in oklab, var(--primary) 72%, var(--deep-text) 28%);
+	}
+
+	.post-signal--stale {
+		--signal-accent: var(--admonitions-color-warning);
+		--signal-bg: color-mix(in oklab, var(--admonitions-color-warning) 10%, transparent);
+		--signal-border: color-mix(in oklab, var(--admonitions-color-warning) 24%, transparent);
+		--signal-text: color-mix(
+			in oklab,
+			var(--admonitions-color-warning) 74%,
+			var(--deep-text) 26%
+		);
+	}
+
+	.post-signal--legacy {
+		--signal-accent: var(--admonitions-color-caution);
+		--signal-bg: color-mix(in oklab, var(--admonitions-color-caution) 10%, transparent);
+		--signal-border: color-mix(in oklab, var(--admonitions-color-caution) 24%, transparent);
+		--signal-text: color-mix(
+			in oklab,
+			var(--admonitions-color-caution) 74%,
+			var(--deep-text) 26%
+		);
+	}
+
 	.post-outdated {
 		margin-bottom: 0.875rem;
 		display: flex;
@@ -245,52 +306,24 @@ if (isOutdated) {
 		--outdated-bg: color-mix(in oklab, var(--admonitions-color-tip) 10%, transparent);
 		--outdated-border: color-mix(in oklab, var(--admonitions-color-tip) 38%, transparent);
 		--outdated-badge-bg: color-mix(in oklab, var(--admonitions-color-tip) 16%, transparent);
-		--outdated-accent: color-mix(
-			in oklab,
-			var(--admonitions-color-tip) 82%,
-			black 12%
-		);
+		--outdated-accent: color-mix(in oklab, var(--admonitions-color-tip) 82%, black 12%);
 		--outdated-text: color-mix(in oklab, var(--admonitions-color-tip) 62%, var(--text) 38%);
 	}
 
 	.post-outdated--stale {
 		--outdated-bg: color-mix(in oklab, var(--admonitions-color-warning) 11%, transparent);
 		--outdated-border: color-mix(in oklab, var(--admonitions-color-warning) 42%, transparent);
-		--outdated-badge-bg: color-mix(
-			in oklab,
-			var(--admonitions-color-warning) 17%,
-			transparent
-		);
-		--outdated-accent: color-mix(
-			in oklab,
-			var(--admonitions-color-warning) 88%,
-			black 12%
-		);
-		--outdated-text: color-mix(
-			in oklab,
-			var(--admonitions-color-warning) 58%,
-			var(--text) 42%
-		);
+		--outdated-badge-bg: color-mix(in oklab, var(--admonitions-color-warning) 17%, transparent);
+		--outdated-accent: color-mix(in oklab, var(--admonitions-color-warning) 88%, black 12%);
+		--outdated-text: color-mix(in oklab, var(--admonitions-color-warning) 58%, var(--text) 42%);
 	}
 
 	.post-outdated--legacy {
 		--outdated-bg: color-mix(in oklab, var(--admonitions-color-caution) 10%, transparent);
 		--outdated-border: color-mix(in oklab, var(--admonitions-color-caution) 44%, transparent);
-		--outdated-badge-bg: color-mix(
-			in oklab,
-			var(--admonitions-color-caution) 16%,
-			transparent
-		);
-		--outdated-accent: color-mix(
-			in oklab,
-			var(--admonitions-color-caution) 84%,
-			black 10%
-		);
-		--outdated-text: color-mix(
-			in oklab,
-			var(--admonitions-color-caution) 55%,
-			var(--text) 45%
-		);
+		--outdated-badge-bg: color-mix(in oklab, var(--admonitions-color-caution) 16%, transparent);
+		--outdated-accent: color-mix(in oklab, var(--admonitions-color-caution) 84%, black 10%);
+		--outdated-text: color-mix(in oklab, var(--admonitions-color-caution) 55%, var(--text) 45%);
 	}
 
 	@media (max-width: 768px) {

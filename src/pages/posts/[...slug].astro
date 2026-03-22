@@ -2,18 +2,19 @@
 import path from "node:path";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
+import PostOutdatedNotice from "@components/PostOutdatedNotice.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@utils/content-utils";
-import { getDir, getPostUrlBySlug } from "@utils/url-utils";
+import { formatDateToYYYYMMDD } from "@utils/date-utils";
+import { getPostHistory } from "@utils/git-log";
+import { getPostFreshness } from "@utils/post-signals";
+import { getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
-import { licenseConfig } from "src/config";
-import { getPostHistory } from "@/utils/git-log";
+import { licenseConfig, profileConfig, siteConfig } from "src/config";
 import ImageWrapper from "../../components/misc/ImageWrapper.astro";
 import PostMetadata from "../../components/PostMeta.astro";
-import { profileConfig, siteConfig } from "../../config";
-import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 
 export async function getStaticPaths() {
 	const blogEntries = await getSortedPosts();
@@ -24,42 +25,20 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content, headings } = await entry.render();
-const { remarkPluginFrontmatter } = await entry.render();
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+const gitHistory = await getPostHistory(entry.filePath ?? "");
+const freshness = getPostFreshness(entry.data.published, entry.data.updated);
+const latestRevision = gitHistory[0];
 
-// ✅ 修订记录（关键）
-const gitHistory = await getPostHistory(entry.filePath);
+const datetimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+	dateStyle: "medium",
+	timeStyle: "short",
+});
 
-// ===== 过期提醒 =====
-const lastDate = entry.data.updated ?? entry.data.published;
-const now = new Date();
-const outdatedDays = Math.floor(
-	(now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
-);
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+	dateStyle: "medium",
+});
 
-const isOutdated = outdatedDays >= 0;
-
-let outdatedLevel: "aging" | "stale" | "legacy" | null = null;
-let outdatedLabel = "";
-let outdatedIcon = "";
-
-if (isOutdated) {
-	if (outdatedDays > 180) {
-		outdatedLevel = "legacy";
-		outdatedLabel = "较早内容";
-		outdatedIcon = "material-symbols:alarm-on-rounded";
-	} else if (outdatedDays > 90) {
-		outdatedLevel = "stale";
-		outdatedLabel = "建议复核";
-		outdatedIcon = "material-symbols:history-rounded";
-	} else {
-		outdatedLevel = "aging";
-		outdatedLabel = "轻度过期";
-		outdatedIcon = "material-symbols:schedule-rounded";
-	}
-}
-
-// ===== SEO =====
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "BlogPosting",
@@ -72,6 +51,7 @@ const jsonLd = {
 		url: Astro.site,
 	},
 	datePublished: formatDateToYYYYMMDD(entry.data.published),
+	dateModified: formatDateToYYYYMMDD(entry.data.updated ?? entry.data.published),
 	inLanguage: entry.data.lang
 		? entry.data.lang.replace("_", "-")
 		: siteConfig.lang.replace("_", "-"),
@@ -94,12 +74,13 @@ const jsonLd = {
 	></script>
 
 	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
-		<div id="post-container" class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full">
-
-			<!-- 阅读信息 -->
-			<div class="flex flex-row text-black/30 dark:text-white/30 gap-5 mb-3 transition onload-animation">
-				<div class="flex items-center">
-					<div class="h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 flex items-center justify-center mr-2">
+		<article
+			id="post-container"
+			class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full"
+		>
+			<div class="post-reading onload-animation">
+				<div class="post-reading__item">
+					<div class="post-reading__icon">
 						<Icon name="material-symbols:notes-rounded" />
 					</div>
 					<div class="text-sm">
@@ -107,8 +88,8 @@ const jsonLd = {
 					</div>
 				</div>
 
-				<div class="flex items-center">
-					<div class="h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 flex items-center justify-center mr-2">
+				<div class="post-reading__item">
+					<div class="post-reading__icon">
 						<Icon name="material-symbols:schedule-outline-rounded" />
 					</div>
 					<div class="text-sm">
@@ -122,31 +103,20 @@ const jsonLd = {
 				</div>
 			</div>
 
-			<!-- 标题 -->
-			<div class="font-bold mb-3 text-3xl md:text-[2.25rem]/[2.75rem]">
+			<h1 class="font-bold mb-3 text-3xl md:text-[2.25rem]/[2.75rem]">
 				{entry.data.title}
-			</div>
+			</h1>
 
-			<!-- 元数据 -->
 			<PostMetadata
-				class="mb-5"
+				class="mb-6"
 				published={entry.data.published}
 				updated={entry.data.updated}
 				tags={entry.data.tags}
 				category={entry.data.category}
 			/>
 
-			<!-- 过期提醒 -->
-			{isOutdated && (
-				<div class={`post-outdated post-outdated--${outdatedLevel}`}>
-					<Icon name={outdatedIcon} />
-					<span>
-						此文章最后更新于 {outdatedDays} 天前，内容可能已过时
-					</span>
-				</div>
-			)}
+			{freshness && <PostOutdatedNotice status={freshness} />}
 
-			<!-- 封面 -->
 			{entry.data.image && (
 				<ImageWrapper
 					src={entry.data.image}
@@ -155,38 +125,68 @@ const jsonLd = {
 				/>
 			)}
 
-			<!-- 正文 -->
 			<Markdown class="mb-6 markdown-content">
 				<Content />
 			</Markdown>
 
-			<!-- ✅ 修订记录 -->
 			{gitHistory.length > 1 && (
-				<div class="post-history">
-					<div class="post-history__header">
-						<Icon name="material-symbols:history-rounded" />
-						<span>文章修订历史（{gitHistory.length} 次）</span>
+				<section class="post-history">
+					<div class="post-history__hero">
+						<div>
+							<div class="post-history__eyebrow">Revision Trail</div>
+							<h2 class="post-history__title">Revision History</h2>
+							<p class="post-history__description">
+								Only meaningful content changes are shown here. Routine formatting and maintenance commits are filtered out automatically.
+							</p>
+						</div>
+
+						<div class="post-history__stats">
+							<div class="post-history__stat">
+								<span class="post-history__stat-label">Meaningful entries</span>
+								<strong>{gitHistory.length}</strong>
+							</div>
+							{latestRevision && (
+								<div class="post-history__stat">
+									<span class="post-history__stat-label">Latest revision</span>
+									<strong>{dateFormatter.format(new Date(latestRevision.date))}</strong>
+								</div>
+							)}
+						</div>
 					</div>
 
-					<details>
-						<summary>查看变更记录</summary>
+					<details class="post-history__details">
+						<summary>
+							<span class="post-history__summary-copy">
+								<Icon name="material-symbols:history-rounded" />
+								<span>Open timeline</span>
+							</span>
+							<span class="post-history__summary-count">{gitHistory.length} entries</span>
+						</summary>
 
-						<ul>
+						<ol class="post-history__timeline">
 							{gitHistory.map((item) => (
-								<li>
-									<div class="flex justify-between text-xs text-gray-400">
-										<span>{new Date(item.date).toLocaleString()}</span>
-										<span class="text-primary">{item.hash}</span>
+								<li class="post-history__item">
+									<div class="post-history__line" aria-hidden="true"></div>
+									<div class="post-history__dot" aria-hidden="true"></div>
+									<div class="post-history__card">
+										<div class="post-history__meta">
+											<time datetime={item.date}>
+												{datetimeFormatter.format(new Date(item.date))}
+											</time>
+											<span class:list={["post-history__type", `post-history__type--${item.type}`]}>
+												{item.typeLabel}
+											</span>
+										</div>
+										<div class="post-history__message">{item.message}</div>
+										<code class="post-history__hash">{item.hash}</code>
 									</div>
-									<div class="text-sm mt-1">{item.message}</div>
 								</li>
 							))}
-						</ul>
+						</ol>
 					</details>
-				</div>
+				</section>
 			)}
 
-			<!-- 版权 -->
 			{licenseConfig.enable && (
 				<License
 					title={entry.data.title}
@@ -194,102 +194,255 @@ const jsonLd = {
 					pubDate={entry.data.published}
 				/>
 			)}
-		</div>
+		</article>
 	</div>
 </MainGridLayout>
 
 <style>
-.post-history{
-  margin:2rem 0;
-  padding:1rem 1.2rem;
+	.post-reading {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem 1.1rem;
+		margin-bottom: 0.9rem;
+		color: color-mix(in oklab, var(--deep-text) 38%, transparent);
+	}
 
-  border-radius:14px;
+	.post-reading__item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
 
-  background:var(--card-bg);
-  border:1px solid var(--line-divider);
-}
+	.post-reading__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.6rem;
+		height: 1.6rem;
+		border-radius: 0.65rem;
+		background: color-mix(in oklab, var(--btn-regular-bg) 88%, transparent);
+	}
 
-.post-history__header{
-  display:flex;
-  align-items:center;
-  gap:6px;
+	.post-history {
+		margin: 2.5rem 0 2rem;
+		padding: 1.25rem;
+		border-radius: 1.25rem;
+		border: 1px solid color-mix(in oklab, var(--line-divider) 90%, transparent);
+		background:
+			radial-gradient(
+				circle at top right,
+				color-mix(in oklab, var(--primary) 9%, transparent),
+				transparent 30%
+			),
+			var(--card-bg);
+	}
 
-  font-weight:600;
-  font-size:0.95rem;
+	.post-history__hero {
+		display: flex;
+		justify-content: space-between;
+		gap: 1.5rem;
+		margin-bottom: 1rem;
+	}
 
-  margin-bottom:0.6rem;
-}
+	.post-history__eyebrow {
+		margin-bottom: 0.3rem;
+		color: var(--primary);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
 
-.post-history details summary{
-  cursor:pointer;
-  font-size:0.8rem;
-  color:var(--text-secondary);
-}
+	.post-history__title {
+		margin: 0;
+		color: var(--deep-text);
+		font-size: 1.15rem;
+		font-weight: 700;
+	}
 
-.post-history ul{
-  margin-top:0.6rem;
-  padding:0;
-  list-style:none;
-}
+	.post-history__description {
+		margin: 0.45rem 0 0;
+		max-width: 42rem;
+		color: color-mix(in oklab, var(--deep-text) 64%, transparent);
+		font-size: 0.9rem;
+		line-height: 1.7;
+	}
 
-.post-history li{
-  position:relative;
-  padding:0.7rem 0.8rem 0.7rem 1.2rem;
+	.post-history__stats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		align-self: start;
+	}
 
-  border-radius:10px;
-  margin-bottom:0.5rem;
+	.post-history__stat {
+		min-width: 7.5rem;
+		padding: 0.8rem 0.95rem;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in oklab, var(--line-divider) 88%, transparent);
+		background: color-mix(in oklab, var(--btn-regular-bg) 60%, transparent);
+	}
 
-  background:color-mix(in oklab, var(--card-bg) 92%, black 8%);
-}
+	.post-history__stat-label {
+		display: block;
+		margin-bottom: 0.25rem;
+		color: color-mix(in oklab, var(--deep-text) 48%, transparent);
+		font-size: 0.75rem;
+	}
 
-/* 时间轴线 */
-.post-history li::before{
-  content:"";
-  position:absolute;
-  left:6px;
-  top:10px;
-  bottom:10px;
-  width:2px;
-  background:var(--line-divider);
-}
+	.post-history__stat strong {
+		color: var(--deep-text);
+		font-size: 0.92rem;
+	}
 
-/* 时间 */
-.post-history .date{
-  font-size:0.7rem;
-  color:var(--text-secondary);
-}
+	.post-history__details summary {
+		list-style: none;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.85rem 1rem;
+		border-radius: 1rem;
+		background: color-mix(in oklab, var(--btn-regular-bg) 72%, transparent);
+		color: var(--deep-text);
+		cursor: pointer;
+		user-select: none;
+	}
 
-/* commit hash */
-.post-history .hash{
-  font-family:monospace;
-  font-size:0.7rem;
-  color:var(--primary);
-}
+	.post-history__details summary::-webkit-details-marker {
+		display: none;
+	}
 
-/* message */
-.post-history .msg{
-  margin-top:2px;
-  font-size:0.85rem;
-}
+	.post-history__summary-copy {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.92rem;
+		font-weight: 600;
+	}
 
-.post-outdated{
-  display:flex;
-  align-items:center;
-  gap:8px;
+	.post-history__summary-count {
+		color: color-mix(in oklab, var(--deep-text) 54%, transparent);
+		font-size: 0.82rem;
+	}
 
-  margin-bottom:1.2rem;
-  padding:0.6rem 0.9rem;
+	.post-history__timeline {
+		margin: 1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
 
-  font-size:0.85rem;
+	.post-history__item {
+		position: relative;
+		padding-left: 1.65rem;
+	}
 
-  border-radius:10px;
-  border-left:3px solid var(--primary);
+	.post-history__item:not(:last-child) {
+		padding-bottom: 0.9rem;
+	}
 
-  background:color-mix(in oklab, var(--primary) 8%, transparent);
-  color:var(--text-secondary);
-}
+	.post-history__line {
+		position: absolute;
+		left: 0.36rem;
+		top: 0.5rem;
+		bottom: -0.4rem;
+		width: 1px;
+		background: color-mix(in oklab, var(--line-divider) 90%, transparent);
+	}
 
-.post-outdated svg{
-  color:var(--primary);
-}
+	.post-history__item:last-child .post-history__line {
+		display: none;
+	}
+
+	.post-history__dot {
+		position: absolute;
+		left: 0;
+		top: 0.45rem;
+		width: 0.72rem;
+		height: 0.72rem;
+		border-radius: 999px;
+		border: 2px solid color-mix(in oklab, var(--primary) 28%, white 72%);
+		background: var(--card-bg);
+	}
+
+	.post-history__card {
+		padding: 0.9rem 1rem;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in oklab, var(--line-divider) 82%, transparent);
+		background: color-mix(in oklab, var(--card-bg) 80%, var(--btn-regular-bg) 20%);
+	}
+
+	.post-history__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 0.75rem;
+		color: color-mix(in oklab, var(--deep-text) 48%, transparent);
+		font-size: 0.8rem;
+	}
+
+	.post-history__type {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.2rem 0.5rem;
+		border-radius: 999px;
+		font-size: 0.72rem;
+		font-weight: 700;
+	}
+
+	.post-history__type--feat {
+		background: color-mix(in oklab, var(--admonitions-color-tip) 14%, transparent);
+		color: color-mix(in oklab, var(--admonitions-color-tip) 78%, var(--deep-text) 22%);
+	}
+
+	.post-history__type--fix {
+		background: color-mix(in oklab, var(--admonitions-color-warning) 16%, transparent);
+		color: color-mix(in oklab, var(--admonitions-color-warning) 80%, var(--deep-text) 20%);
+	}
+
+	.post-history__type--content,
+	.post-history__type--other {
+		background: color-mix(in oklab, var(--primary) 10%, transparent);
+		color: color-mix(in oklab, var(--primary) 76%, var(--deep-text) 24%);
+	}
+
+	.post-history__message {
+		margin-top: 0.55rem;
+		color: var(--deep-text);
+		font-size: 0.95rem;
+		line-height: 1.65;
+	}
+
+	.post-history__hash {
+		display: inline-block;
+		margin-top: 0.7rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--btn-regular-bg) 86%, transparent);
+		color: color-mix(in oklab, var(--deep-text) 54%, transparent);
+		font-size: 0.76rem;
+	}
+
+	@media (max-width: 768px) {
+		.post-history {
+			padding: 1rem;
+		}
+
+		.post-history__hero {
+			flex-direction: column;
+			gap: 1rem;
+		}
+
+		.post-history__stats {
+			width: 100%;
+		}
+
+		.post-history__stat {
+			flex: 1 1 10rem;
+		}
+
+		.post-history__details summary {
+			padding: 0.8rem 0.9rem;
+		}
+	}
 </style>

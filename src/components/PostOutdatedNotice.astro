@@ -1,34 +1,91 @@
 ---
-const { date } = Astro.props;
+import { Icon } from "astro-icon/components";
+import type { PostFreshness } from "@/utils/post-signals";
 
-const lastModified = new Date(date);
-const now = new Date();
+interface Props {
+	status: PostFreshness;
+}
 
-const days = Math.floor(
-	(now.getTime() - lastModified.getTime()) / (1000 * 60 * 60 * 24),
-);
-
-const outdated = days > 1; // 超过1天显示
+const { status } = Astro.props;
 ---
 
-{outdated && (
-  <div class="outdated-notice">
-    ⚠️ 此文章最后更新于 {days} 天前，部分内容可能已过时。
-  </div>
-)}
+<aside class:list={["post-freshness", `post-freshness--${status.level}`]}>
+	<div class="post-freshness__badge">
+		<Icon name={status.icon} class="text-[1rem]" />
+		<span>{status.label}</span>
+	</div>
+
+	<div class="post-freshness__content">
+		<p class="post-freshness__text">{status.description}</p>
+	</div>
+</aside>
 
 <style>
-.outdated-notice {
-  margin: 30px 0;
-  padding: 14px 18px;
+	.post-freshness {
+		margin-bottom: 1.5rem;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.625rem 0.875rem;
+		border: 1px solid var(--freshness-border);
+		border-left-width: 4px;
+		border-radius: 0.875rem;
+		background: var(--freshness-bg);
+		color: var(--freshness-text);
+		font-size: 0.8125rem;
+		line-height: 1.45;
+	}
 
-  border-radius: 10px;
-  background: rgba(255, 170, 0, 0.12);
-  border-left: 4px solid #ff9800;
+	.post-freshness__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-shrink: 0;
+		padding: 0.3rem 0.55rem;
+		border-radius: 999px;
+		background: var(--freshness-badge-bg);
+		color: var(--freshness-accent);
+		font-weight: 700;
+	}
 
-  color: #b26a00;
-  font-size: 15px;
+	.post-freshness__content {
+		min-width: 0;
+	}
 
-  line-height: 1.6;
-}
+	.post-freshness__text {
+		margin: 0;
+		color: var(--freshness-text);
+	}
+
+	.post-freshness--aging {
+		--freshness-bg: color-mix(in oklab, var(--admonitions-color-tip) 10%, transparent);
+		--freshness-border: color-mix(in oklab, var(--admonitions-color-tip) 38%, transparent);
+		--freshness-badge-bg: color-mix(in oklab, var(--admonitions-color-tip) 16%, transparent);
+		--freshness-accent: color-mix(in oklab, var(--admonitions-color-tip) 82%, black 12%);
+		--freshness-text: color-mix(in oklab, var(--admonitions-color-tip) 62%, var(--text) 38%);
+	}
+
+	.post-freshness--stale {
+		--freshness-bg: color-mix(in oklab, var(--admonitions-color-warning) 11%, transparent);
+		--freshness-border: color-mix(in oklab, var(--admonitions-color-warning) 42%, transparent);
+		--freshness-badge-bg: color-mix(in oklab, var(--admonitions-color-warning) 17%, transparent);
+		--freshness-accent: color-mix(in oklab, var(--admonitions-color-warning) 88%, black 12%);
+		--freshness-text: color-mix(in oklab, var(--admonitions-color-warning) 58%, var(--text) 42%);
+	}
+
+	.post-freshness--legacy {
+		--freshness-bg: color-mix(in oklab, var(--admonitions-color-caution) 10%, transparent);
+		--freshness-border: color-mix(in oklab, var(--admonitions-color-caution) 44%, transparent);
+		--freshness-badge-bg: color-mix(in oklab, var(--admonitions-color-caution) 16%, transparent);
+		--freshness-accent: color-mix(in oklab, var(--admonitions-color-caution) 84%, black 10%);
+		--freshness-text: color-mix(in oklab, var(--admonitions-color-caution) 55%, var(--text) 45%);
+	}
+
+	@media (max-width: 768px) {
+		.post-freshness {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+	}
 </style>
