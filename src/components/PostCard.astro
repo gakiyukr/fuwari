@@ -47,11 +47,6 @@ const coverWidth = "28%";
 const { remarkPluginFrontmatter } = await entry.render();
 const freshness = getPostFreshness(published, updated);
 const activityBadges = getPostActivityBadges(published, updated);
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
-const publishedDays = Math.max(
-	0,
-	Math.floor((Date.now() - published.getTime()) / MS_PER_DAY),
-);
 ---
 
 <div
@@ -115,7 +110,7 @@ const publishedDays = Math.max(
 								<Icon name={freshness.icon} class="text-[1rem]"></Icon>
 								<span>{freshness.label}</span>
 							</div>
-							<div class="post-outdated__text">此文章发布于 {publishedDays} 天前</div>
+							<div class="post-outdated__text">{freshness.description}</div>
 						</div>
 					)}
 			</>

@@ -28,16 +28,17 @@ export function getPostFreshness(
 	now = new Date(),
 ) {
 	const lastDate = updated ?? published;
+	const publishedDays = getElapsedDays(published, now);
 	const days = getElapsedDays(lastDate, now);
 
 	if (days > 180) {
 		return {
 			days,
 			level: "legacy",
-			label: "较早内容",
-			title: "这篇文章可能已经落后于当前情况",
+			label: "严重过时",
+			title: "这篇文章可能已经明显落后于当前情况",
 			icon: "material-symbols:alarm-on-rounded",
-			description: `此文章最后更新于 ${days} 天前，部分信息可能已经严重过时`,
+			description: `此文章发布于 ${publishedDays} 天前，部分信息可能已经严重过时`,
 		} satisfies PostFreshness;
 	}
 
@@ -46,9 +47,9 @@ export function getPostFreshness(
 			days,
 			level: "stale",
 			label: "建议复核",
-			title: "这篇文章有一段时间没有更新了",
+			title: "这篇文章已有一段时间没有更新",
 			icon: "material-symbols:history-rounded",
-			description: `此文章最后更新于 ${days} 天前，部分信息可能已与当前情况不一致`,
+			description: `此文章发布于 ${publishedDays} 天前，部分信息可能已与当前情况不一致`,
 		} satisfies PostFreshness;
 	}
 
@@ -58,7 +59,7 @@ export function getPostFreshness(
 		label: "轻度过期",
 		title: "这篇文章可能需要留意时效性",
 		icon: "material-symbols:schedule-rounded",
-		description: `此文章最后更新于 ${days} 天前，部分信息可能需要重新确认`,
+		description: `此文章发布于 ${publishedDays} 天前，部分信息可能需要重新确认`,
 	} satisfies PostFreshness;
 }
 
