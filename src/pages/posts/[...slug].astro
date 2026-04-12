@@ -28,9 +28,14 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 const gitHistory = await getPostHistory(entry.filePath ?? "");
-const freshness = getPostFreshness(entry.data.published, entry.data.updated);
 const latestRevision = gitHistory[0];
 const previousRevisions = gitHistory.slice(1);
+const gitUpdatedAt = latestRevision?.date ? new Date(latestRevision.date) : undefined;
+const effectiveUpdated =
+	gitUpdatedAt && !Number.isNaN(gitUpdatedAt.getTime())
+		? gitUpdatedAt
+		: entry.data.updated;
+const freshness = getPostFreshness(entry.data.published, effectiveUpdated);
 
 const datetimeFormatter = new Intl.DateTimeFormat("zh-CN", {
 	dateStyle: "medium",
@@ -53,7 +58,7 @@ const jsonLd = {
 		url: Astro.site,
 	},
 	datePublished: formatDateToYYYYMMDD(entry.data.published),
-	dateModified: formatDateToYYYYMMDD(entry.data.updated ?? entry.data.published),
+	dateModified: formatDateToYYYYMMDD(effectiveUpdated ?? entry.data.published),
 	inLanguage: entry.data.lang
 		? entry.data.lang.replace("_", "-")
 		: siteConfig.lang.replace("_", "-"),
@@ -109,22 +114,22 @@ const jsonLd = {
 				{entry.data.title}
 			</h1>
 
-			<PostMetadata
-				class="mb-6"
-				published={entry.data.published}
-				updated={entry.data.updated}
-				tags={entry.data.tags}
-				category={entry.data.category}
-			/>
-
-			{freshness && (
-				<PostOutdatedNotice
-					status={freshness}
+				<PostMetadata
+					class="mb-6"
 					published={entry.data.published}
-					updated={entry.data.updated}
-					historyHref={gitHistory.length > 0 ? "#post-history" : undefined}
+					updated={effectiveUpdated}
+					tags={entry.data.tags}
+					category={entry.data.category}
 				/>
-			)}
+
+				{freshness && (
+					<PostOutdatedNotice
+						status={freshness}
+						published={entry.data.published}
+						updated={effectiveUpdated}
+						historyHref={gitHistory.length > 0 ? "#post-history" : undefined}
+					/>
+				)}
 
 			{entry.data.image && (
 				<ImageWrapper
