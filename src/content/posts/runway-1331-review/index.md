@@ -1,10 +1,10 @@
 ---
 title: 香港平价酒店：启德机场上的方舱医院——启航1331
 published: 2026-03-15
-description: How code blocks look in Markdown using Expressive Code.
+description: 启德旧机场上的群友之家
 tags:
   - 旅行
-category: Examples
+category: 旅行
 draft: false
 ---
 （多图预警）
@@ -18,11 +18,11 @@ draft: false
 友情提示：
 1. 该酒店为启德方舱医院改建而来，虽说建成以后没有真正用于做医院。有心理负担请谨慎选择。
 ![](https://img.040407.xyz/img/2026/03/e236000d354239cd08de4e8c43185cff.webp)
-2. 该酒店位于启德机场旧址，启德邮轮码头北部。附近交通、购物、吃饭等设施较为不便。
-3. 酒店虽提供免费摆渡车来往港铁启德站，但末班车在晚上九点左右，非服务时间需要自行解决交通问题。
+1. 该酒店位于启德机场旧址，启德邮轮码头北部。附近交通、购物、吃饭等设施较为不便。
+2. 酒店虽提供免费摆渡车来往港铁启德站，但末班车在晚上九点左右，非服务时间需要自行解决交通问题。
 ![](https://img.040407.xyz/img/2026/03/8c302274b7b2fe97b5be570f59b19a18.webp)
-4. 在香港这个价格请适当调整心理预期，本人认为这地段和价格要什么自行车，除非你去重庆大厦/多人青旅。
-5. 酒店不提供一次性拖鞋，提供一次性毛巾与牙具。
+1. 在香港这个价格请适当调整心理预期，本人认为这地段和价格要什么自行车，除非你去重庆大厦/多人青旅。
+2. 酒店不提供一次性拖鞋，提供一次性毛巾与牙具。
 :::
 
 
@@ -37,7 +37,7 @@ draft: false
 
 ## 预定链接
 
-[Via Trip.com（无 AFF）](https://hk.trip.com/hotels/hong-kong-hotel-detail-132412036/runway-1331-enlight-youth-hostel/)
+[啟航1331 - 啟 青年旅館 - 2026 香港酒店訂房人氣優惠及住客評論｜Trip.com](https://hk.trip.com/hotels/hong-kong-hotel-detail-132412036/runway-1331-enlight-youth-hostel/)
 
 ## 交通方式
 搭乘屯马线到达港铁启德站，从 A 出口到达地面，在巴士站（启德-港铁 A 出口；沐安街）搭乘前往前往启德邮轮码头的巴士即可。
@@ -97,3 +97,13 @@ draft: false
 ![](https://img.040407.xyz/img/2026/03/8c02e316c8b47e1c6fbf6c8c39fc5851.webp)
 
 ![](https://img.040407.xyz/img/2026/03/1892d693214c4c0318c4037c0d02a1aa.webp)
+## 后记
+[啟航1331 - Campus 旅舍 - 2026 香港酒店訂房人氣優惠及住客評論｜Trip.com](https://hk.trip.com/hotels/detail/?cityId=58&hotelId=133458457)
+
+看起来这园区又开了一家新酒店，是不是一个业主就不知道了。整体和本文介绍的这家差不多。
+
+新的这家装修看起来比较好，还提供冰箱。
+![](https://img.040407.xyz/img/2026/04/72fe26f78e8d726f49a74a700e75629e.webp)
+（这一家没住过，只是看 Trip 的图片）
+
+但是价格稍微贵几十块到一百块，入住时可以自行查看两家价格比较。
