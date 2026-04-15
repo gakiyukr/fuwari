@@ -1,14 +1,27 @@
 import { execSync } from "child_process";
 import fs from "fs";
-import path from "path";
 
-function getGitUnstagedFiles() {
+const POST_DIR = "src/content/posts";
+
+/**
+ * Get all files that have changes (both staged and unstaged),
+ * filtered to only .md files under the posts directory.
+ */
+function getChangedPostFiles() {
 	const output = execSync("git status --porcelain", { encoding: "utf-8" });
 	return output
 		.trim()
 		.split("\n")
-		.map((line) => line.slice(3))
-		.filter(Boolean);
+		.filter(Boolean)
+		.map((line) => {
+			// porcelain format: "XY filename" (XY is 2-char status)
+			// Handle renamed files: "R  old -> new"
+			const parts = line.slice(3).split(" -> ");
+			return parts[parts.length - 1].trim();
+		})
+		.filter(
+			(file) => file.startsWith(POST_DIR + "/") && file.endsWith(".md"),
+		);
 }
 
 function parseFrontmatter(content) {
@@ -16,35 +29,20 @@ function parseFrontmatter(content) {
 	if (!match) return null;
 
 	const frontmatter = {};
-	const lines = match[1].split("\n");
-
-	for (const line of lines) {
+	for (const line of match[1].split("\n")) {
 		const colonIdx = line.indexOf(":");
 		if (colonIdx === -1) continue;
-
 		const key = line.slice(0, colonIdx).trim();
 		let value = line.slice(colonIdx + 1).trim();
-
-		if (value.startsWith('"') && value.endsWith('"')) {
-			value = value.slice(1, -1);
-		} else if (value.startsWith("'") && value.endsWith("'")) {
+		if (
+			(value.startsWith('"') && value.endsWith('"')) ||
+			(value.startsWith("'") && value.endsWith("'"))
+		) {
 			value = value.slice(1, -1);
 		}
-
 		frontmatter[key] = value;
 	}
-
 	return frontmatter;
-}
-
-function findPostFile(files) {
-	const postDir = "src/content/posts";
-	for (const file of files) {
-		if (file.startsWith(postDir + "/") && file.endsWith(".md")) {
-			return file;
-		}
-	}
-	return null;
 }
 
 function isNewFile(file) {
@@ -57,39 +55,40 @@ function isNewFile(file) {
 }
 
 function main() {
-	const files = getGitUnstagedFiles();
+	const postFiles = getChangedPostFiles();
 
-	if (files.length === 0) {
-		console.error("Error: No unstaged changes found");
+	if (postFiles.length === 0) {
+		console.error(
+			"Error: No changed .md files found in src/content/posts/",
+		);
 		process.exit(1);
 	}
 
-	const postFile = findPostFile(files);
+	console.log(`Found ${postFiles.length} changed post(s):`);
+	postFiles.forEach((f) => console.log(`  - ${f}`));
 
-	if (!postFile) {
-		console.error("Error: No post file found in unstaged changes");
-		process.exit(1);
+	for (const postFile of postFiles) {
+		const content = fs.readFileSync(postFile, "utf-8");
+		const fm = parseFrontmatter(content);
+
+		if (!fm || !fm.title) {
+			console.warn(`Warning: Skipping ${postFile} — missing title in frontmatter`);
+			continue;
+		}
+
+		const title = fm.title;
+		const description = fm.description || "";
+		const action = isNewFile(postFile) ? "发布" : "更新";
+		const commitMsg = `posts: ${action}文章：《${title}》，${description}`;
+
+		execSync(`git add "${postFile}"`, { encoding: "utf-8" });
+		execSync(`git commit -m "${commitMsg}"`, { encoding: "utf-8" });
+		console.log(`✓ Committed: ${commitMsg}`);
 	}
 
-	const content = fs.readFileSync(postFile, "utf-8");
-	const fm = parseFrontmatter(content);
-
-	if (!fm || !fm.title) {
-		console.error("Error: Post file missing title in frontmatter");
-		process.exit(1);
-	}
-
-	const title = fm.title;
-	const description = fm.description || "";
-	const isNew = isNewFile(postFile);
-	const action = isNew ? "发布" : "更新";
-
-	const commitMsg = `posts: ${action}文章：《${title}》，${description}`;
-
-	execSync(`git add .`, { encoding: "utf-8" });
-	execSync(`git commit -m "${commitMsg}"`, { encoding: "utf-8" });
-
-	console.log(`Committed: ${commitMsg}`);
+	// Push all commits at once
+	execSync("git push", { encoding: "utf-8", stdio: "inherit" });
+	console.log("✓ Pushed to remote.");
 }
 
 main();

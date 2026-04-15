@@ -31,11 +31,14 @@ const gitHistory = await getPostHistory(entry.filePath ?? "");
 const latestRevision = gitHistory[0];
 const previousRevisions = gitHistory.slice(1);
 const gitUpdatedAt = latestRevision?.date ? new Date(latestRevision.date) : undefined;
+// effectiveUpdated (git date) is used for display and metadata only.
+// For freshness level/color, use frontmatter dates to stay consistent with PostCard on home page.
+// Otherwise every commit resets the "age" to 0 and the notice always shows teal.
 const effectiveUpdated =
 	gitUpdatedAt && !Number.isNaN(gitUpdatedAt.getTime())
 		? gitUpdatedAt
 		: entry.data.updated;
-const freshness = getPostFreshness(entry.data.published, effectiveUpdated);
+const freshness = getPostFreshness(entry.data.published, entry.data.updated);
 
 const datetimeFormatter = new Intl.DateTimeFormat("zh-CN", {
 	dateStyle: "medium",
