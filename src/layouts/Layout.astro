@@ -200,6 +200,14 @@ const bannerOffset =
 	.navbar-hidden {
 		@apply opacity-0 -translate-y-16
 	}
+	.spoiler {
+		@apply bg-neutral-900 text-neutral-900 dark:bg-neutral-100 dark:text-neutral-100 rounded px-1 transition-all duration-300 cursor-help;
+	}
+	.spoiler:hover {
+		@apply bg-transparent !important;
+		color: var(--primary) !important;
+		background-color: transparent !important;
+	}
 }
 </style>
 
