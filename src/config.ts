@@ -1,5 +1,6 @@
 import type {
 	ExpressiveCodeConfig,
+	GitHubEditConfig,
 	LicenseConfig,
 	NavBarConfig,
 	ProfileConfig,
@@ -86,4 +87,10 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	// 注意：某些样式（如背景色）被 astro.config.mjs 文件中的设置覆盖
 	// 请选择深色主题，因为此博客主题目前只支持深色背景
 	theme: "github-dark",
+};
+
+export const gitHubEditConfig: GitHubEditConfig = {
+	enable: true,
+	// 修改為你的 GitHub 倉庫路徑
+	baseUrl: "https://github.com/gakiyukr/fuwari/blob/main/src/content/posts",
 };

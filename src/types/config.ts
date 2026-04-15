@@ -102,6 +102,11 @@ export type ExpressiveCodeConfig = {
 	theme: string;
 };
 
+export type GitHubEditConfig = {
+	enable: boolean;
+	baseUrl: string; // e.g. "https://github.com/user/repo/blob/main/src/content/posts"
+};
+
 export type CommentsConfig = {
 	enable: boolean;
 	provider: "giscus";
