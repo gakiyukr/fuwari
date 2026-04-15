@@ -61,3 +61,7 @@ temp/
 
 # Deploy platform metadata
 .vercel/
+
+# Custom Exclusions
+link.md
+src/content/posts/spoiler-test.md
