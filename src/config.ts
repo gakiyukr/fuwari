@@ -45,6 +45,15 @@ export const siteConfig: SiteConfig = {
 		lang: "zh-CN",
 		lazy: true,
 	},
+	analytics: {
+		provider: "umami",
+		enable: Boolean(
+			import.meta.env.PUBLIC_UMAMI_SRC &&
+				import.meta.env.PUBLIC_UMAMI_WEBSITE_ID,
+		),
+		src: import.meta.env.PUBLIC_UMAMI_SRC ?? "",
+		websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID ?? "",
+	},
 	favicon: [
 		// 留空数组使用默认 favicon
 		// {

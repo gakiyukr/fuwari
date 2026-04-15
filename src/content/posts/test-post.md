@@ -1,6 +1,6 @@
 ---
 title: Test Post
-published: 2026-04-14
+published: 2025-04-14
 description: Testing the post-commit automation script.
 category: Test
 tags: [test, automation]

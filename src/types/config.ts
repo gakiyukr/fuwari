@@ -35,6 +35,7 @@ export type SiteConfig = {
 		depth: 1 | 2 | 3;
 	};
 	comments: CommentsConfig;
+	analytics: AnalyticsConfig;
 
 	favicon: Favicon[];
 };
@@ -127,4 +128,11 @@ export type CommentsConfig = {
 	inputPosition: "top" | "bottom";
 	lang: string;
 	lazy: boolean;
+};
+
+export type AnalyticsConfig = {
+	provider: "umami";
+	enable: boolean;
+	src: string;
+	websiteId: string;
 };
