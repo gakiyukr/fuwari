@@ -94,7 +94,54 @@ console.log("Hello Fuwari!");
 
 ---
 
-## 7. 本地 pnpm 内容维护脚本
+## 7. Mermaid 圖表
+
+文章可以使用 Mermaid 語法繪製流程圖、時序圖、狀態圖等。寫作時使用 `mermaid` 代碼區塊即可，建構後會在前台自動渲染成 SVG 圖表。
+
+**語法：**
+
+````markdown
+```mermaid
+flowchart TD
+	A[開始] --> B{是否完成?}
+	B -- 是 --> C[發布]
+	B -- 否 --> D[繼續修改]
+	D --> B
+```
+````
+
+**適合用途：**
+
+- 技術流程說明
+- 系統架構草圖
+- 時序圖
+- 決策流程
+
+---
+
+## 8. 外鏈自動處理
+
+Markdown 裡的外部連結會在建構時自動加上安全屬性：
+
+```html
+target="_blank"
+rel="noopener noreferrer"
+```
+
+這代表外部網站會在新分頁打開，並且不會拿到目前頁面的 `window.opener` 權限。站內相對連結、錨點、`mailto:`、`tel:` 不會被處理。
+
+**語法不需要改變：**
+
+```markdown
+[OpenAI](https://openai.com)
+[站內文章](/posts/example/)
+```
+
+第一個會被當成外鏈處理，第二個仍然是普通站內連結。
+
+---
+
+## 9. 本地 pnpm 内容维护脚本
 
 这些命令不是 Markdown 渲染语法，而是写作和维护文章时可以在终端运行的辅助工具。
 

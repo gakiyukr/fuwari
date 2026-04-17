@@ -22,6 +22,8 @@ import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badg
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
 import { UrlCardComponent } from "./src/plugins/rehype-component-url-card.mjs";
+import { rehypeExternalLinks } from "./src/plugins/rehype-external-links.mjs";
+import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
 import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
@@ -118,13 +120,15 @@ export default defineConfig({
 			remarkDirective,
 			remarkSectionize,
 			parseDirectiveNode,
-		],
-		rehypePlugins: [
-			rehypeSpoiler,
-			rehypeKatex,
-			rehypeSlug,
-			[
-				rehypeComponents,
+			],
+			rehypePlugins: [
+				rehypeMermaid,
+				rehypeSpoiler,
+				rehypeKatex,
+				rehypeSlug,
+				rehypeExternalLinks,
+				[
+					rehypeComponents,
 				{
 					components: {
 						url: (x, y) => UrlCardComponent(x, y),

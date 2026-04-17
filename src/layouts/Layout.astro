@@ -218,8 +218,8 @@ import {
 	// ScrollbarsHidingPlugin,
 	// SizeObserverPlugin,
 	// ClickScrollPlugin
-} from 'overlayscrollbars';
-import {getHue, getStoredTheme, setHue, setTheme} from "../utils/setting-utils";
+	} from 'overlayscrollbars';
+	import {getHue, getStoredTheme, setHue, setTheme} from "../utils/setting-utils";
 import {pathsEqual, url} from "../utils/url-utils";
 import {
 	BANNER_HEIGHT,
@@ -273,7 +273,29 @@ function disableAnimation() {
 }
 */
 
-const bannerEnabled = !!document.getElementById('banner-wrapper')
+	const bannerEnabled = !!document.getElementById('banner-wrapper')
+	let mermaidModule: typeof import("mermaid").default | null = null;
+	let mermaidInitialized = false;
+
+	async function initMermaid() {
+		const diagrams = document.querySelectorAll(".mermaid");
+		if (diagrams.length === 0) return;
+
+		mermaidModule ??= (await import("mermaid")).default;
+
+		if (!mermaidInitialized) {
+			mermaidModule.initialize({
+				startOnLoad: false,
+				securityLevel: "strict",
+				theme: document.documentElement.classList.contains("dark") ? "dark" : "default",
+			});
+			mermaidInitialized = true;
+		}
+
+		mermaidModule.run({ nodes: Array.from(diagrams) as HTMLElement[] }).catch((error) => {
+			console.error("Failed to render Mermaid diagrams:", error);
+		});
+	}
 
 function setClickOutsideToClose(panel: string, ignores: string[]) {
 	document.addEventListener("click", event => {
@@ -380,13 +402,14 @@ function showBanner() {
 	banner.classList.remove('opacity-0', 'scale-105');
 }
 
-function init() {
-	// disableAnimation()()		// TODO
-	loadTheme();
-	loadHue();
-	initCustomScrollbar();
-	showBanner();
-}
+	function init() {
+		// disableAnimation()()		// TODO
+		loadTheme();
+		loadHue();
+		initCustomScrollbar();
+		initMermaid();
+		showBanner();
+	}
 
 /* Load settings when entering the site */
 init();
@@ -421,7 +444,7 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', initCustomScrollbar)
+		window.swup.hooks.on('content:replace', init)
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')

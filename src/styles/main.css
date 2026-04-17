@@ -116,6 +116,14 @@
     @apply cursor-zoom-in
 }
 
+.custom-md .mermaid {
+    @apply my-6 overflow-x-auto rounded-2xl border border-[var(--line-divider)] bg-[var(--btn-regular-bg)] p-4 text-center;
+}
+
+.custom-md .mermaid svg {
+    @apply mx-auto max-w-full;
+}
+
 ::selection {
     background-color: var(--selection-bg)
 }

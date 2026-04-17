@@ -1,0 +1,149 @@
+---
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { Icon } from "astro-icon/components";
+import { url } from "../utils/url-utils";
+---
+
+<MainGridLayout title="404" description="Page not found">
+	<section class="not-found card-base">
+		<div class="not-found__code">404</div>
+		<div class="not-found__content">
+			<p class="not-found__eyebrow">Lost in the archive</p>
+			<h1>页面没有找到</h1>
+			<p>
+				这个地址可能已经移动、删除，或者只是偷偷躲进了宇宙的缓存里。
+				先回到首页，或者去归档里找找看。
+			</p>
+			<div class="not-found__actions">
+				<a class="not-found__primary" href={url("/")}>
+					<Icon name="material-symbols:home-rounded" />
+					<span>返回首页</span>
+				</a>
+				<a class="not-found__secondary" href={url("/archive/")}>
+					<Icon name="material-symbols:inventory-2-outline-rounded" />
+					<span>查看归档</span>
+				</a>
+			</div>
+		</div>
+	</section>
+</MainGridLayout>
+
+<style>
+	.not-found {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+		gap: 1.5rem;
+		align-items: center;
+		min-height: 22rem;
+		padding: 2rem;
+		overflow: hidden;
+	}
+
+	.not-found::before {
+		content: "";
+		position: absolute;
+		inset: -35% auto auto -15%;
+		width: 24rem;
+		height: 24rem;
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--primary) 18%, transparent);
+		filter: blur(12px);
+		pointer-events: none;
+	}
+
+	.not-found__code {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		aspect-ratio: 1;
+		border-radius: 2rem;
+		background:
+			linear-gradient(
+				135deg,
+				color-mix(in oklab, var(--primary) 20%, transparent),
+				color-mix(in oklab, var(--btn-regular-bg) 72%, transparent)
+			);
+		color: color-mix(in oklab, var(--primary) 68%, var(--deep-text) 32%);
+		font-size: clamp(4rem, 12vw, 8rem);
+		font-weight: 800;
+		letter-spacing: -0.08em;
+	}
+
+	.not-found__content {
+		position: relative;
+	}
+
+	.not-found__eyebrow {
+		margin-bottom: 0.65rem;
+		color: var(--primary);
+		font-size: 0.78rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+	.not-found h1 {
+		margin: 0 0 0.85rem;
+		color: var(--deep-text);
+		font-size: clamp(2rem, 6vw, 3.25rem);
+		font-weight: 800;
+		letter-spacing: -0.04em;
+	}
+
+	.not-found p {
+		color: color-mix(in oklab, var(--deep-text) 62%, transparent);
+		line-height: 1.8;
+	}
+
+	.not-found__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1.35rem;
+	}
+
+	.not-found__primary,
+	.not-found__secondary {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1rem;
+		border-radius: 0.9rem;
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			transform 150ms ease,
+			background 150ms ease,
+			border-color 150ms ease;
+	}
+
+	.not-found__primary {
+		background: var(--primary);
+		color: white;
+	}
+
+	.not-found__secondary {
+		border: 1px solid color-mix(in oklab, var(--line-divider) 88%, transparent);
+		background: color-mix(in oklab, var(--btn-regular-bg) 70%, transparent);
+		color: var(--deep-text);
+	}
+
+	.not-found__primary:hover,
+	.not-found__secondary:hover {
+		transform: translateY(-1px);
+	}
+
+	@media (max-width: 768px) {
+		.not-found {
+			grid-template-columns: 1fr;
+			padding: 1.25rem;
+		}
+
+		.not-found__code {
+			aspect-ratio: auto;
+			min-height: 10rem;
+		}
+	}
+</style>
