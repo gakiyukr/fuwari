@@ -19,6 +19,7 @@
         "lint": "biome check --write ./src",
         "post-commit": "node scripts/post-commit.js",
         "del-space": "node scripts/del-space.js",
+        "fix-images": "node scripts/fix-adjacent-images.js",
         "preinstall": "npx only-allow pnpm"
     },
     "dependencies": {
