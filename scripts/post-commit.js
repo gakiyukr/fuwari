@@ -1,94 +1,117 @@
-import { execSync } from "child_process";
-import fs from "fs";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 
 const POST_DIR = "src/content/posts";
+const POST_EXTENSIONS = new Set([".md", ".mdx"]);
 
-/**
- * Get all files that have changes (both staged and unstaged),
- * filtered to only .md files under the posts directory.
- */
+function runGit(args, options = {}) {
+	return execFileSync("git", args, {
+		encoding: "utf-8",
+		stdio: options.stdio ?? "pipe",
+	});
+}
+
 function getChangedPostFiles() {
-	const output = execSync("git status --porcelain", { encoding: "utf-8" });
+	const output = runGit(["status", "--porcelain"]);
+
 	return output
 		.trim()
 		.split("\n")
 		.filter(Boolean)
 		.map((line) => {
-			// porcelain format: "XY filename" (XY is 2-char status)
-			// Handle renamed files: "R  old -> new"
-			const parts = line.slice(3).split(" -> ");
-			return parts[parts.length - 1].trim();
+			const status = line.slice(0, 2);
+			const pathPart = line.slice(3);
+			const parts = pathPart.split(" -> ");
+			return {
+				status,
+				file: parts[parts.length - 1].trim(),
+			};
 		})
-		.filter(
-			(file) => file.startsWith(POST_DIR + "/") && file.endsWith(".md"),
-		);
+		.filter(({ status, file }) => {
+			const isDeleted = status.includes("D");
+			const isPost = file.startsWith(`${POST_DIR}/`);
+			const hasPostExtension = POST_EXTENSIONS.has(
+				file.slice(file.lastIndexOf(".")),
+			);
+			return !isDeleted && isPost && hasPostExtension;
+		})
+		.map(({ file }) => file);
 }
 
 function parseFrontmatter(content) {
-	const match = content.match(/^---\n([\s\S]*?)\n---/);
+	const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 	if (!match) return null;
 
 	const frontmatter = {};
-	for (const line of match[1].split("\n")) {
-		const colonIdx = line.indexOf(":");
-		if (colonIdx === -1) continue;
-		const key = line.slice(0, colonIdx).trim();
-		let value = line.slice(colonIdx + 1).trim();
+	for (const line of match[1].split(/\r?\n/)) {
+		const colonIndex = line.indexOf(":");
+		if (colonIndex === -1) continue;
+
+		const key = line.slice(0, colonIndex).trim();
+		let value = line.slice(colonIndex + 1).trim();
+
 		if (
 			(value.startsWith('"') && value.endsWith('"')) ||
 			(value.startsWith("'") && value.endsWith("'"))
 		) {
 			value = value.slice(1, -1);
 		}
+
 		frontmatter[key] = value;
 	}
+
 	return frontmatter;
 }
 
 function isNewFile(file) {
 	try {
-		execSync(`git ls-files --error-unmatch "${file}"`, { encoding: "utf-8" });
+		runGit(["ls-files", "--error-unmatch", "--", file]);
 		return false;
 	} catch {
 		return true;
 	}
 }
 
+function buildCommitMessage(file, frontmatter) {
+	const action = isNewFile(file) ? "publish" : "update";
+	const title = frontmatter.title.trim();
+	const description = frontmatter.description?.trim();
+	const suffix = description ? `: ${description}` : "";
+
+	return `posts: ${action} "${title}"${suffix}`;
+}
+
 function main() {
 	const postFiles = getChangedPostFiles();
 
 	if (postFiles.length === 0) {
-		console.error(
-			"Error: No changed .md files found in src/content/posts/",
-		);
+		console.error("Error: No changed .md/.mdx files found in src/content/posts/");
 		process.exit(1);
 	}
 
 	console.log(`Found ${postFiles.length} changed post(s):`);
-	postFiles.forEach((f) => console.log(`  - ${f}`));
+	postFiles.forEach((file) => console.log(`  - ${file}`));
 
 	for (const postFile of postFiles) {
 		const content = fs.readFileSync(postFile, "utf-8");
-		const fm = parseFrontmatter(content);
+		const frontmatter = parseFrontmatter(content);
 
-		if (!fm || !fm.title) {
-			console.warn(`Warning: Skipping ${postFile} — missing title in frontmatter`);
+		if (!frontmatter?.title?.trim()) {
+			console.warn(
+				`Warning: Skipping ${postFile}: missing title in frontmatter.`,
+			);
 			continue;
 		}
 
-		const title = fm.title;
-		const description = fm.description || "";
-		const action = isNewFile(postFile) ? "发布" : "更新";
-		const commitMsg = `posts: ${action}文章：《${title}》，${description}`;
+		const commitMessage = buildCommitMessage(postFile, frontmatter);
 
-		execSync(`git add "${postFile}"`, { encoding: "utf-8" });
-		execSync(`git commit -m "${commitMsg}"`, { encoding: "utf-8" });
-		console.log(`✓ Committed: ${commitMsg}`);
+		runGit(["add", "--", postFile]);
+		runGit(["commit", "-m", commitMessage, "--", postFile], { stdio: "inherit" });
+		console.log(`Committed: ${commitMessage}`);
 	}
 
-	// Push all commits at once
-	execSync("git push", { encoding: "utf-8", stdio: "inherit" });
-	console.log("✓ Pushed to remote.");
+	runGit(["push"], { stdio: "inherit" });
+	console.log("Pushed to remote.");
 }
 
 main();
