@@ -8,6 +8,9 @@ import type {
 } from "./types/config";
 import { LinkPreset } from "./types/config";
 
+const umamiShareUrl = import.meta.env.PUBLIC_UMAMI_SHARE_URL ?? "";
+const umamiShareId = umamiShareUrl.split("/").filter(Boolean).at(-1) ?? "";
+
 export const siteConfig: SiteConfig = {
 	title: "Fuwari",
 	subtitle: "Demo Site",
@@ -53,6 +56,8 @@ export const siteConfig: SiteConfig = {
 		),
 		src: import.meta.env.PUBLIC_UMAMI_SRC ?? "",
 		websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID ?? "",
+		shareUrl: umamiShareUrl,
+		shareId: umamiShareId,
 	},
 	favicon: [
 		// 留空数组使用默认 favicon

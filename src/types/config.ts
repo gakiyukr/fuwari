@@ -135,4 +135,6 @@ export type AnalyticsConfig = {
 	enable: boolean;
 	src: string;
 	websiteId: string;
+	shareUrl: string;
+	shareId: string;
 };
