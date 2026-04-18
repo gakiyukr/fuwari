@@ -1,79 +1,142 @@
-# Fuwari 博客特殊 Markdown 語法指南 (Cheat Sheet)
+# Fuwari 写作与维护速查表
 
-本指南列出了目前這個 Fuwari 博客程序支持的所有**特殊 Markdown 標記**與**自定義組件**之使用方式。有了這些語法，你可以讓文章內容更加豐富、互動性更強。
+这份文档记录当前站点支持的特殊 Markdown 语法、自定义组件，以及本地常用维护脚本。它适合在写文章、排版和提交文章时快速查阅。
 
 ---
 
-## 1. Spoiler (隱藏文字 / 防劇透) 🆕
-這是在底層使用 Rehype 解析的自定義防劇透遮罩功能。被隱藏的文字預設會顯示為與背景顏色相同的色塊，當使用者將滑鼠懸停 (Hover) 於色塊上方時，隱藏的內容才會以主體顏色 (Primary Color) 顯現出來。
+## 1. 文章 Frontmatter
 
-**語法：**
-```markdown
-這是一段正常文字，||這是一段被隱藏的防劇透內容||，然後段落繼續。
+文章通常放在 `src/content/posts/` 下，文件扩展名可以是 `.md` 或 `.mdx`。
+
+常用 frontmatter 示例：
+
+```yaml
+---
+title: 文章标题
+published: 2026-04-18
+description: 简短摘要
+image: ''
+tags:
+  - 旅行
+category: 旅行
+draft: false
+lang: ''
+---
 ```
 
-**效果：**
-這是一段正常文字，<span style="background-color: #333; color: #333; border-radius: 4px; padding: 0 4px;">這是一段被隱藏的防劇透內容</span>，然後段落繼續。
+说明：
+
+- `title` 是文章标题，也是自动提交脚本生成提交信息时会读取的字段。
+- `description` 会用于文章摘要，也会被 `pnpm post-commit` 放进提交信息。
+- `published` 使用 `YYYY-MM-DD` 格式。
+- `draft: true` 表示草稿，`draft: false` 表示发布。
+- `tags` 和 `category` 用于归档与筛选。
 
 ---
 
-## 2. Admonitions (多風格提示框)
-這套主題支援將 GitHub 格式的 `> [!NOTE]` 或原生的 `:::` 轉換為漂亮的多彩提示區塊。強烈建議直接使用原生的 `:::` 宣告來取得最佳相容性。
+## 2. Spoiler 隐藏文字
 
-**語法：**
+站点支持防剧透隐藏文字。被隐藏内容默认以遮罩形式显示，鼠标悬停后显示正文。
+
+语法：
+
+```markdown
+这是一段正常文字，||这是一段被隐藏的内容||，然后段落继续。
+```
+
+适合用途：
+
+- 剧透内容
+- 答案折叠
+- 不希望第一眼看到的补充信息
+
+---
+
+## 3. Admonitions 提示框
+
+推荐使用 `:::` 语法写提示框。
+
 ```markdown
 :::tip
-這是一個實用的技巧提示 (綠色)。
+这是一个技巧提示。
 :::
 
 :::note
-這是一段普通的筆記或備註 (預設藍色)。
+这是普通笔记。
 :::
 
 :::important
-這是一段重要的訊息 (紫色)。
+这是重要信息。
 :::
 
 :::warning
-這是一個需要注意的警告 (橘色)。
+这是警告内容。
 :::
 
 :::caution
-這是一個嚴重的危險提示 (紅色與驚嘆號圖示)。
+这是严重风险提示。
 :::
+```
+
+支持的类型：
+
+- `tip`
+- `note`
+- `important`
+- `warning`
+- `caution`
+
+也支持 GitHub 风格的 admonition：
+
+```markdown
+> [!NOTE]
+> 这是一段 GitHub 风格提示。
 ```
 
 ---
 
-## 3. 連結預覽卡片 (URL Card) 🆕
-為外部連結自動抓取網站 Favicon、Title 與 Description，並產生一個美觀的預覽卡片。此功能在渲染時會透過 JavaScript 動態抓取資料並呈現載入動畫。
+## 4. URL 预览卡片
 
-**語法：**
+外部链接可以写成 URL 卡片。页面渲染时会尝试抓取网站图标、标题和描述。
+
 ```markdown
 ::url{href="https://google.com"}
 ```
 
+注意：
+
+- 这个组件适合展示外部网页。
+- 数据由前端动态获取，网络不可用时可能只显示加载或错误状态。
+
 ---
 
-## 4. GitHub 倉庫卡片 (Repo Card)
-這是一個專屬的 GitHub 預覽組件，能自動顯示 Repo 的 Star 數、Fork 數、授權條款與簡介。
+## 5. GitHub 仓库卡片
 
-**語法：**
+可以用 GitHub 卡片展示仓库信息。
+
 ```markdown
 ::github{repo="saicaca/fuwari"}
 ```
 
+说明：
+
+- `repo` 格式是 `owner/repo`。
+- 组件会请求 GitHub API 显示仓库名称、简介、星标、分叉和许可证等信息。
+
 ---
 
-## 5. 數學公式 (KaTeX)
-透過 `remarkMath` 與 `rehypeKatex` 支持標準的 LaTeX 數學公式渲染。
+## 6. 数学公式 KaTeX
 
-**行內公式語法：**
+站点通过 `remark-math` 和 `rehype-katex` 支持 LaTeX 数学公式。
+
+行内公式：
+
 ```markdown
-這是一個著名的公式 $E = mc^2$。
+这是一个著名公式 $E = mc^2$。
 ```
 
-**區塊公式語法：**
+块级公式：
+
 ```markdown
 $$
 x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
@@ -82,145 +145,193 @@ $$
 
 ---
 
-## 6. 強化的代碼區塊 (Expressive Code)
-這套主題透過整合 `Astro Expressive Code` 提供了非常強大的代碼區塊功能，你不僅能為代碼標上檔案名稱，還能針對特定行高亮。
+## 7. Expressive Code 代码块
 
-**自訂檔名 (Title)：**
+代码块支持文件名、行高亮、增删标记和折叠区间。
+
+带文件名：
+
 ````markdown
 ```javascript title="app.js"
 console.log("Hello Fuwari!");
 ```
 ````
 
+指定行高亮与增删：
+
+````markdown
+```python {1,3-5} ins={2} del={6}
+# 第 1、3、4、5 行会高亮
+# 第 2 行会显示新增效果
+# 第 6 行会显示删除效果
+```
+````
+
+折叠部分代码：
+
+````markdown
+```html collapse={2-8}
+<ul>
+  <li>隐藏的项目 1</li>
+  <li>隐藏的项目 2</li>
+  <!-- 中间内容默认折叠 -->
+</ul>
+```
+````
+
 ---
 
-## 7. Mermaid 圖表
+## 8. Mermaid 图表
 
-文章可以使用 Mermaid 語法繪製流程圖、時序圖、狀態圖等。寫作時使用 `mermaid` 代碼區塊即可，建構後會在前台自動渲染成 SVG 圖表。
-
-**語法：**
+文章可以通过 `mermaid` 代码块绘制流程图、时序图、状态图等。
 
 ````markdown
 ```mermaid
 flowchart TD
-	A[開始] --> B{是否完成?}
-	B -- 是 --> C[發布]
-	B -- 否 --> D[繼續修改]
-	D --> B
+  A[开始] --> B{是否完成?}
+  B -- 是 --> C[发布]
+  B -- 否 --> D[继续修改]
+  D --> B
 ```
 ````
 
-**適合用途：**
+适合用途：
 
-- 技術流程說明
-- 系統架構草圖
-- 時序圖
-- 決策流程
+- 技术流程说明
+- 系统架构草图
+- 时序图
+- 决策流程
 
 ---
 
-## 8. 外鏈自動處理
+## 9. 外链自动处理
 
-Markdown 裡的外部連結會在建構時自動加上安全屬性：
+Markdown 里的外部链接会在构建时自动加上安全属性：
 
 ```html
 target="_blank"
 rel="noopener noreferrer"
 ```
 
-這代表外部網站會在新分頁打開，並且不會拿到目前頁面的 `window.opener` 權限。站內相對連結、錨點、`mailto:`、`tel:` 不會被處理。
-
-**語法不需要改變：**
+普通写法即可：
 
 ```markdown
 [OpenAI](https://openai.com)
-[站內文章](/posts/example/)
+[站内文章](/posts/example/)
 ```
 
-第一個會被當成外鏈處理，第二個仍然是普通站內連結。
+说明：
+
+- `http` 和 `https` 外部链接会在新标签页打开。
+- 站内相对链接、锚点、`mailto:`、`tel:` 不会被当成外链处理。
 
 ---
 
-## 9. 本地 pnpm 内容维护脚本
+## 10. 自动摘要与阅读时间
 
-这些命令不是 Markdown 渲染语法，而是写作和维护文章时可以在终端运行的辅助工具。
+项目包含 `remarkExcerpt` 和 `remarkReadingTime`。
 
-### `pnpm new-post -- <filename>`
+实际效果：
 
-创建一篇新的 Markdown 文章。
+- 文章卡片可以使用 frontmatter 的 `description`。
+- 如果没有合适的摘要，渲染逻辑可以使用 remark 生成的 excerpt。
+- 阅读时间和字数会在文章卡片或文章页中展示。
 
-实际行为：
+---
+
+## 11. 新建文章脚本
+
+命令：
+
+```powershell
+pnpm new-post -- <filename>
+```
+
+行为：
 
 - 如果没有传入文件名，会报错退出。
 - 如果文件名没有 `.md` 或 `.mdx` 后缀，会自动补成 `.md`。
 - 文件会创建到 `src/content/posts/` 下。
-- 支持多级路径，例如 `pnpm new-post -- travel/hong-kong-note` 会自动创建目录。
+- 支持多级路径，例如 `pnpm new-post -- travel/hong-kong-note`。
 - 如果目标文件已经存在，会报错退出，避免覆盖旧文章。
-- 新文件会自动写入基础 frontmatter。
+- 会自动写入基础 frontmatter。
 
-生成的 frontmatter 包含：
+生成的 frontmatter：
 
 ```yaml
+---
 title: <filename>
 published: <当天日期>
 description: ''
 image: ''
 tags: []
 category: ''
-draft: false
+draft: false 
 lang: ''
+---
 ```
-
-适合用来快速开新文章草稿。
 
 ---
 
-### `pnpm post-commit`
+## 12. 文章自动提交脚本
 
-根据当前 Git 工作区里变动过的文章，自动生成提交并推送。
+命令：
 
-实际行为：
+```powershell
+pnpm post-commit
+```
 
-- 读取 `git status --porcelain`。
-- 只处理 `src/content/posts/` 下发生变动的 `.md` / `.mdx` 文件。
+行为：
+
+- 读取当前 Git 工作区状态。
+- 只处理 `src/content/posts/` 下变动过的 `.md` 和 `.mdx` 文件。
 - 支持 Git rename 记录，会取重命名后的新路径。
-- 会跳过被删除的文章文件，避免读取不存在的文件。
-- 读取文章 frontmatter 里的 `title` 和 `description`。
-- 判断文章是否是 Git 里尚未跟踪的新文件。
-- 对每篇变动文章执行 `git add`。
-- 对每篇变动文章单独执行一次 `git commit`，并用 pathspec 限定只提交当前文章文件。
-- 所有 commit 完成后执行 `git push`。
-- 提交信息格式为 `posts: publish "Title": description` 或 `posts: update "Title": description`。
+- 跳过已删除的文章文件。
+- 读取文章 frontmatter 中的 `title` 和 `description`。
+- 每篇文章单独 `git add`。
+- 每篇文章单独 `git commit`，并用 pathspec 限定只提交当前文章文件。
+- 所有文章提交完成后执行 `git push`。
 
-需要注意：
+提交信息格式：
+
+```text
+posts: publish "Title": description
+posts: update "Title": description
+```
+
+注意：
 
 - 这个脚本会真实提交并推送，不是 dry-run。
-- 如果没有变动的文章文件，会报错退出。
-- 如果文章没有 `title`，会跳过那篇文章。
-- 它只适合提交文章文件；如果同时有代码改动，建议先单独处理代码改动，避免工作区状态太混乱。
+- 如果没有变动文章，会报错退出。
+- 如果文章缺少 `title`，会跳过那篇文章。
+- 它只适合处理文章文件；如果同时有代码、配置或 `.obsidian` 改动，建议单独提交。
 
-适合在只改文章内容时快速提交，但不适合和代码改动混在一起使用。
+---
 
-### `pnpm fix-images`
+## 13. 图片排版修复脚本
 
-检查文章中连续排列的图片，并在图片之间补空行，让 Markdown 排版更稳定。
+命令：
+
+```powershell
+pnpm fix-images
+```
 
 默认行为：
 
 - 扫描 `src/content/posts/` 下所有 `.md` 和 `.mdx` 文件。
-- 识别连续的 Markdown 图片行。
-- 识别连续的单行 HTML `<img>` 图片行。
+- 检查连续排列的 Markdown 图片行。
+- 检查连续排列的单行 HTML `<img>` 图片行。
 - 跳过代码块中的内容，避免误改示例代码。
 - 默认只报告会修改哪些文件，不会写入。
 
-例如它会把：
+示例：
 
 ```markdown
 ![](./a.jpg)
 ![](./b.jpg)
 ```
 
-整理为：
+会整理为：
 
 ```markdown
 ![](./a.jpg)
@@ -228,31 +339,28 @@ lang: ''
 ![](./b.jpg)
 ```
 
-真正写入文件需要显式加 `--write`：
+真正写入文件：
 
 ```powershell
 pnpm fix-images -- --write
 ```
 
-适合在文章里插入多张连续图片后统一整理排版。
+---
 
-**指定行號高亮 (Highlight) 與刪增 (Diff)：**
-````markdown
-```python {1, 3-5} ins={2} del={6}
-# 1, 3, 4, 5 行會被標記高亮
-# 第 2 行前會出現綠色的 + 號並高亮
-# 第 6 行前會出現紅色的 - 號並顯示刪除效果
-```
-````
+## 14. 常用维护命令
 
-**可折疊的代碼區塊 (Collapsible Sections)：**
-如果代碼太長，可以預設折疊某幾行。
-````markdown
-```html collapse={2-8}
-<ul>
-	<li>隱藏的項目 1</li>
-	<li>隱藏的項目 2</li>
-    <!-- ... 中間的都會被折疊，需要點擊展開 -->
-</ul>
+```powershell
+pnpm check
+pnpm build
+pnpm fix-images
+pnpm fix-images -- --write
+pnpm post-commit
 ```
-````
+
+建议流程：
+
+1. 写文章或修改内容。
+2. 如果插入了多张连续图片，运行 `pnpm fix-images -- --write`。
+3. 只改文章时，可以运行 `pnpm post-commit`。
+4. 如果同时改了代码或配置，先手动拆分提交。
+5. 发布前需要确认站点可构建时，运行 `pnpm build`。
