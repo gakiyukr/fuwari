@@ -21,7 +21,9 @@ export interface PostHistoryItem {
 }
 
 function isMeaningfulCommit(message: string) {
-	return !HIDDEN_COMMIT_PATTERNS.some((pattern) => pattern.test(message.trim()));
+	return !HIDDEN_COMMIT_PATTERNS.some((pattern) =>
+		pattern.test(message.trim()),
+	);
 }
 
 function getHistoryType(message: string): PostHistoryType {

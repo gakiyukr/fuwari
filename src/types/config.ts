@@ -115,13 +115,7 @@ export type CommentsConfig = {
 	repoId: string;
 	category: string;
 	categoryId: string;
-	mapping:
-		| "pathname"
-		| "url"
-		| "title"
-		| "og:title"
-		| "specific"
-		| "number";
+	mapping: "pathname" | "url" | "title" | "og:title" | "specific" | "number";
 	strict: boolean;
 	reactionsEnabled: boolean;
 	emitMetadata: boolean;

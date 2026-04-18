@@ -8,7 +8,7 @@ export function rehypeSpoiler() {
 			// Match all occurrences of ||...||
 			const regex = /\|\|(.*?)\|\|/g;
 			const parts = node.value.split(regex);
-			
+
 			// No matches found
 			if (parts.length === 1) return;
 

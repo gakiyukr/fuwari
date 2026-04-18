@@ -13,7 +13,12 @@ import { getPostHistory } from "@utils/git-log";
 import { getPostFreshness } from "@utils/post-signals";
 import { getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
-import { licenseConfig, profileConfig, siteConfig, gitHubEditConfig } from "src/config";
+import {
+	gitHubEditConfig,
+	licenseConfig,
+	profileConfig,
+	siteConfig,
+} from "src/config";
 import ImageWrapper from "../../components/misc/ImageWrapper.astro";
 import PostMetadata from "../../components/PostMeta.astro";
 
@@ -30,7 +35,9 @@ const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 const gitHistory = await getPostHistory(entry.filePath ?? "");
 const latestRevision = gitHistory[0];
 const previousRevisions = gitHistory.slice(1);
-const gitUpdatedAt = latestRevision?.date ? new Date(latestRevision.date) : undefined;
+const gitUpdatedAt = latestRevision?.date
+	? new Date(latestRevision.date)
+	: undefined;
 // effectiveUpdated (git date) is used for display and metadata only.
 // For freshness level/color, use frontmatter dates to stay consistent with PostCard on home page.
 // Otherwise every commit resets the "age" to 0 and the notice always shows teal.

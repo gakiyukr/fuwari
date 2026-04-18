@@ -11,29 +11,28 @@ export function UrlCardComponent(properties, children) {
 		]);
 
 	if (!properties.href)
-		return h(
-			"div",
-			{ class: "hidden" },
-			'Missing "href" attribute.',
-		);
+		return h("div", { class: "hidden" }, 'Missing "href" attribute.');
 
 	const href = properties.href;
 	let domain = href;
 	try {
-	    domain = new URL(href).hostname;
-	} catch (e) {}
-	
+		domain = new URL(href).hostname;
+	} catch {}
+
 	const cardUuid = `UC${Math.random().toString(36).slice(-6)}`;
 
 	const nImage = h(`div#${cardUuid}-image`, { class: "uc-image" });
-	const nFavicon = h(`div#${cardUuid}-favicon`, { class: "uc-favicon", style: `background-image: url('https://icon.2x.nz/icon/${domain}')` });
+	const nFavicon = h(`div#${cardUuid}-favicon`, {
+		class: "uc-favicon",
+		style: `background-image: url('https://icon.2x.nz/icon/${domain}')`,
+	});
 
 	const nTitleText = h(
 		`div#${cardUuid}-title`,
 		{ class: "uc-title-text" },
 		domain,
 	);
-	
+
 	const nDescription = h(
 		`div#${cardUuid}-description`,
 		{ class: "uc-description" },
@@ -76,9 +75,9 @@ export function UrlCardComponent(properties, children) {
 				h("div", { class: "uc-content" }, [
 					h("div", { class: "uc-titlebar" }, [
 						h("div", { class: "uc-titlebar-left" }, [
-						    nFavicon, 
-						    h("div", { class: "uc-domain" }, domain)
-						])
+							nFavicon,
+							h("div", { class: "uc-domain" }, domain),
+						]),
 					]),
 					nTitleText,
 					nDescription,
