@@ -5,7 +5,7 @@
     "engines": {
         "node": ">=20"
     },
-    "packageManager": "pnpm@9",
+    "packageManager": "pnpm@10.32.1",
     "scripts": {
         "dev": "astro dev",
         "start": "astro dev",
@@ -37,9 +37,9 @@
         "@iconify-json/fa6-solid": "^1.2.4",
         "@iconify-json/material-symbols": "^1.2.50",
         "@iconify/svelte": "^4.2.0",
-        "@swup/astro": "^1.7.0",
+        "@swup/astro": "1.8.0",
         "@tailwindcss/typography": "^0.5.19",
-        "astro": "5.13.10",
+        "astro": "5.17.3",
         "astro-expressive-code": "^0.41.4",
         "astro-icon": "^1.1.5",
         "hastscript": "^9.0.1",
@@ -64,7 +64,7 @@
         "sharp": "^0.34.5",
         "simple-git": "^3.33.0",
         "stylus": "^0.64.0",
-        "svelte": "^5.39.8",
+        "svelte": "^5.53.0",
         "tailwindcss": "^3.4.19",
         "typescript": "^5.9.3",
         "unist-util-visit": "^5.0.0"
