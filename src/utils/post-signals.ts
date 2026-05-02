@@ -1,4 +1,4 @@
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
+import { getElapsedCalendarDays } from "./date-utils";
 
 export type PostFreshnessLevel = "aging" | "stale" | "legacy";
 export type PostActivityKind = "new" | "updated";
@@ -18,18 +18,14 @@ export interface PostActivityBadge {
 	icon: string;
 }
 
-function getElapsedDays(date: Date, now = new Date()) {
-	return Math.max(0, Math.floor((now.getTime() - date.getTime()) / MS_PER_DAY));
-}
-
 export function getPostFreshness(
 	published: Date,
 	updated?: Date,
 	now = new Date(),
 ) {
 	const lastDate = updated ?? published;
-	const publishedDays = getElapsedDays(published, now);
-	const days = getElapsedDays(lastDate, now);
+	const publishedDays = getElapsedCalendarDays(published, now);
+	const days = getElapsedCalendarDays(lastDate, now);
 
 	if (days > 180) {
 		return {
@@ -69,10 +65,10 @@ export function getPostActivityBadges(
 	now = new Date(),
 ) {
 	const badges: PostActivityBadge[] = [];
-	const publishedDays = getElapsedDays(published, now);
+	const publishedDays = getElapsedCalendarDays(published, now);
 	const updatedDays =
 		updated && updated.getTime() !== published.getTime()
-			? getElapsedDays(updated, now)
+			? getElapsedCalendarDays(updated, now)
 			: null;
 
 	if (publishedDays <= 14) {

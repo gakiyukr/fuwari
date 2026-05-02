@@ -1,5 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
+import { getElapsedCalendarDays } from "@/utils/date-utils";
 import type { PostFreshness } from "@/utils/post-signals";
 
 interface Props {
@@ -11,15 +12,9 @@ interface Props {
 
 const { status, published, updated, historyHref } = Astro.props;
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
-
-function getElapsedDays(date: Date, now = new Date()) {
-	return Math.max(0, Math.floor((now.getTime() - date.getTime()) / MS_PER_DAY));
-}
-
-const publishedDays = getElapsedDays(published);
+const publishedDays = getElapsedCalendarDays(published);
 const revisedDate = updated ?? published;
-const revisedDays = getElapsedDays(revisedDate);
+const revisedDays = getElapsedCalendarDays(revisedDate);
 
 function getBannerText(level: PostFreshness["level"]) {
 	if (level === "legacy") {
