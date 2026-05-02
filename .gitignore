@@ -30,8 +30,6 @@ pnpm-debug.log*
 .claude/
 .claude/settings.local.json
 .vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
 .idea/
 *.swp
 *.swo
@@ -58,6 +56,12 @@ coverage/
 # Temporary files
 tmp/
 temp/
+.codex-tmp/
+
+# Obsidian local workspace state
+src/content/posts/.obsidian/workspace.json
+src/content/posts/.obsidian/workspace-mobile.json
+src/content/posts/.obsidian/cache/
 
 # Deploy platform metadata
 .vercel/
