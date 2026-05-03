@@ -11,7 +11,30 @@
 
 	let panelState: PanelState = "idle";
 	let verifyStatus: VerifyStatus = "idle";
-	let verifyMessage = "在線驗證會抓取原文、.asc 和公鑰，並在瀏覽器本地完成。";
+	let verifyMessage = "將抓取原文、.asc 和公鑰，並在瀏覽器本地完成驗證。";
+
+	const statusCopy: Record<VerifyStatus, { title: string; icon: string }> = {
+		idle: {
+			title: "待驗證",
+			icon: "material-symbols:info-outline-rounded",
+		},
+		loading: {
+			title: "正在驗證",
+			icon: "material-symbols:progress-activity-rounded",
+		},
+		valid: {
+			title: "驗證通過",
+			icon: "material-symbols:verified-rounded",
+		},
+		invalid: {
+			title: "簽名不匹配",
+			icon: "material-symbols:warning-outline-rounded",
+		},
+		error: {
+			title: "驗證失敗",
+			icon: "material-symbols:error-outline-rounded",
+		},
+	};
 
 	async function togglePanel() {
 		if (panelState === "open") {
@@ -20,14 +43,12 @@
 		}
 
 		panelState = "open";
-		if (verifyStatus === "idle") {
-			await verifySignature();
-		}
+		await verifySignature();
 	}
 
 	async function verifySignature() {
 		verifyStatus = "loading";
-		verifyMessage = "正在驗證簽名...";
+		verifyMessage = "正在下載驗證所需文件...";
 
 		try {
 			const openpgp = await import("openpgp");
@@ -48,6 +69,8 @@
 				throw new Error("無法下載公鑰");
 			}
 
+			verifyMessage = "正在比對原文與 detached signature...";
+
 			const sourceBytes = new Uint8Array(await sourceResponse.arrayBuffer());
 			const armoredSignature = await signatureResponse.text();
 			const armoredPublicKey = await publicKeyResponse.text();
@@ -60,16 +83,14 @@
 
 			await verification.signatures[0]?.verified;
 			verifyStatus = "valid";
-			verifyMessage = "驗證通過：原文與 .asc 匹配，且簽名來自此公鑰。";
+			verifyMessage = "原文與 .asc 匹配，簽名也來自此公鑰。";
 		} catch (error) {
 			verifyStatus =
 				error instanceof Error && error.message.includes("Signature")
 					? "invalid"
 					: "error";
 			verifyMessage =
-				error instanceof Error
-					? `驗證失敗：${error.message}`
-					: "驗證失敗：未知錯誤";
+				error instanceof Error ? error.message : "發生未知錯誤";
 		}
 	}
 </script>
@@ -120,9 +141,15 @@
 </div>
 
 {#if panelState === "open"}
-	<p class:list={["pgp-verify__message", `pgp-verify__message--${verifyStatus}`]}>
-		{verifyMessage}
-	</p>
+	<div class:list={["pgp-verify", `pgp-verify--${verifyStatus}`]}>
+		<div class="pgp-verify__icon" aria-hidden="true">
+			<Icon icon={statusCopy[verifyStatus].icon} />
+		</div>
+		<div class="pgp-verify__copy">
+			<div class="pgp-verify__title">{statusCopy[verifyStatus].title}</div>
+			<p>{verifyMessage}</p>
+		</div>
+	</div>
 {/if}
 
 <style>
@@ -169,19 +196,78 @@
 		line-height: 1;
 	}
 
-	.pgp-verify__message {
-		margin: 0.55rem 0 0;
-		color: color-mix(in oklab, var(--deep-text) 52%, transparent);
+	.pgp-verify {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.6rem;
+		margin-top: 0.7rem;
+		padding: 0.7rem;
+		border: 1px solid color-mix(in oklab, var(--line-divider) 72%, transparent);
+		border-radius: 0.85rem;
+		background: color-mix(in oklab, var(--btn-regular-bg) 72%, transparent);
+	}
+
+	.pgp-verify__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		flex: 0 0 auto;
+		border-radius: 0.62rem;
+		background: color-mix(in oklab, var(--primary) 12%, transparent);
+		color: var(--primary);
+		font-size: 1rem;
+	}
+
+	.pgp-verify__copy {
+		min-width: 0;
+	}
+
+	.pgp-verify__title {
+		margin-bottom: 0.15rem;
+		color: var(--deep-text);
+		font-size: 0.82rem;
+		font-weight: 800;
+		line-height: 1.25;
+	}
+
+	.pgp-verify p {
+		margin: 0;
+		color: color-mix(in oklab, var(--deep-text) 58%, transparent);
 		font-size: 0.74rem;
 		line-height: 1.45;
 	}
 
-	.pgp-verify__message--valid {
-		color: color-mix(in oklab, var(--admonitions-color-tip) 76%, var(--deep-text) 24%);
+	.pgp-verify--loading .pgp-verify__icon {
+		animation: pgp-spin 900ms linear infinite;
 	}
 
-	.pgp-verify__message--invalid,
-	.pgp-verify__message--error {
-		color: color-mix(in oklab, var(--admonitions-color-warning) 78%, var(--deep-text) 22%);
+	.pgp-verify--valid {
+		border-color: color-mix(in oklab, var(--admonitions-color-tip) 32%, transparent);
+		background: color-mix(in oklab, var(--admonitions-color-tip) 10%, var(--btn-regular-bg));
+	}
+
+	.pgp-verify--valid .pgp-verify__icon {
+		background: color-mix(in oklab, var(--admonitions-color-tip) 18%, transparent);
+		color: color-mix(in oklab, var(--admonitions-color-tip) 78%, var(--deep-text) 22%);
+	}
+
+	.pgp-verify--invalid,
+	.pgp-verify--error {
+		border-color: color-mix(in oklab, var(--admonitions-color-warning) 34%, transparent);
+		background: color-mix(in oklab, var(--admonitions-color-warning) 10%, var(--btn-regular-bg));
+	}
+
+	.pgp-verify--invalid .pgp-verify__icon,
+	.pgp-verify--error .pgp-verify__icon {
+		background: color-mix(in oklab, var(--admonitions-color-warning) 18%, transparent);
+		color: color-mix(in oklab, var(--admonitions-color-warning) 82%, var(--deep-text) 18%);
+	}
+
+	@keyframes pgp-spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 </style>
