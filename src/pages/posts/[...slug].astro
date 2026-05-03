@@ -11,6 +11,7 @@ import { getSortedPosts } from "@utils/content-utils";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
 import { getPostHistory } from "@utils/git-log";
 import { getPostFreshness } from "@utils/post-signals";
+import { getPostPGPSignature } from "@utils/pgp-utils";
 import { getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import {
@@ -32,6 +33,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+const pgpSignature = getPostPGPSignature(entry.slug);
 const gitHistory = await getPostHistory(entry.filePath ?? "");
 const latestRevision = gitHistory[0];
 const previousRevisions = gitHistory.slice(1);
@@ -82,6 +84,7 @@ const jsonLd = {
 	lang={entry.data.lang}
 	setOGTypeArticle={true}
 	headings={headings}
+	pgpSignature={pgpSignature}
 >
 	<script
 		is:inline

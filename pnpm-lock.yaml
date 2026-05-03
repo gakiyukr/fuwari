@@ -83,6 +83,9 @@ importers:
       mermaid:
         specifier: ^11.14.0
         version: 11.14.0
+      openpgp:
+        specifier: ^6.3.0
+        version: 6.3.0
       overlayscrollbars:
         specifier: ^2.12.0
         version: 2.14.0
@@ -3920,6 +3923,10 @@ packages:
   opencollective-postinstall@2.0.3:
     resolution: {integrity: sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==}
     hasBin: true
+
+  openpgp@6.3.0:
+    resolution: {integrity: sha512-pLzCU8IgyKXPSO11eeharQkQ4GzOKNWhXq79pQarIRZEMt1/ssyr+MIuWBv1mNoenJLg04gvPx+fi4gcKZ4bag==}
+    engines: {node: '>= 18.0.0'}
 
   overlayscrollbars@2.14.0:
     resolution: {integrity: sha512-RjV0pqc79kYhQLC3vTcLRb5GLpI1n6qh0Oua3g+bGH4EgNOJHVBGP7u0zZtxoAa0dkHlAqTTSYRb9MMmxNLjig==}
@@ -9939,6 +9946,8 @@ snapshots:
       is-wsl: 2.2.0
 
   opencollective-postinstall@2.0.3: {}
+
+  openpgp@6.3.0: {}
 
   overlayscrollbars@2.14.0: {}
 

@@ -1,0 +1,225 @@
+---
+import type { PGPSignatureInfo } from "@/types/pgp";
+import PGPVerifyButton from "./PGPVerifyButton.svelte";
+import { Icon } from "astro-icon/components";
+
+interface Props {
+	signature: PGPSignatureInfo;
+	class?: string;
+	style?: string;
+}
+
+const { signature, style } = Astro.props;
+const className = Astro.props.class;
+const fingerprint =
+	signature.fingerprint.trim() === ""
+		? "尚未配置"
+		: signature.fingerprint;
+const articleStatusText = {
+	signed: "Signed",
+	unsigned: "Unsigned",
+	pending: "待接入",
+}[signature.articleStatus];
+---
+
+<aside class:list={["card-base p-4 pgp-card", className]} style={style}>
+	<div class="pgp-card__header">
+		<div class="pgp-card__icon">
+			<Icon name="material-symbols:encrypted-outline-rounded" />
+		</div>
+		<div>
+			<div class="pgp-card__eyebrow">PGP Signature</div>
+			<h2 class="pgp-card__title">PGP 簽名</h2>
+		</div>
+	</div>
+
+	<div class="pgp-card__status">
+		<Icon name="material-symbols:verified-user-rounded" />
+		<span>由 {signature.signer} 簽名</span>
+	</div>
+
+	<div class="pgp-card__checks">
+		<div class="pgp-card__check">
+			<div class="pgp-card__check-icon pgp-card__check-icon--article">
+				<Icon name="material-symbols:signature-rounded" />
+			</div>
+			<div class="pgp-card__check-copy">
+				<span>Article Signature</span>
+				<strong>{articleStatusText}</strong>
+			</div>
+		</div>
+
+		<div class="pgp-card__check">
+			<div class="pgp-card__check-icon pgp-card__check-icon--git">
+				<Icon name="fa6-brands:github" />
+			</div>
+			<div class="pgp-card__check-copy">
+				<span>Git Commit</span>
+				<strong>
+					{signature.gitCommit.verified ? "Verified" : "Unverified"}
+					<code>{signature.gitCommit.shortHash}</code>
+				</strong>
+			</div>
+		</div>
+	</div>
+
+	<div class="pgp-card__fingerprint">
+		<div class="pgp-card__label">Fingerprint</div>
+		<code>{fingerprint}</code>
+	</div>
+
+	<PGPVerifyButton
+		client:load
+		signatureUrl={signature.signatureUrl}
+		sourceUrl={signature.sourceUrl}
+		publicKeyUrl={signature.publicKeyUrl}
+	/>
+</aside>
+
+<style>
+	.pgp-card {
+		overflow: hidden;
+	}
+
+	.pgp-card__header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.85rem;
+	}
+
+	.pgp-card__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		flex-shrink: 0;
+		border-radius: 0.85rem;
+		background: color-mix(in oklab, var(--primary) 12%, transparent);
+		color: var(--primary);
+		font-size: 1.25rem;
+	}
+
+	.pgp-card__eyebrow {
+		color: var(--primary);
+		font-size: 0.72rem;
+		font-weight: 800;
+		line-height: 1.1;
+		text-transform: uppercase;
+	}
+
+	.pgp-card__title {
+		margin: 0.15rem 0 0;
+		color: var(--deep-text);
+		font-size: 1rem;
+		font-weight: 800;
+		line-height: 1.25;
+	}
+
+	.pgp-card__status {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin-bottom: 0.85rem;
+		padding: 0.45rem 0.6rem;
+		border-radius: 0.75rem;
+		background: color-mix(in oklab, var(--admonitions-color-tip) 12%, transparent);
+		color: color-mix(in oklab, var(--admonitions-color-tip) 70%, var(--deep-text) 30%);
+		font-size: 0.82rem;
+		font-weight: 700;
+	}
+
+	.pgp-card__checks {
+		display: flex;
+		flex-direction: column;
+		gap: 0.55rem;
+		margin-bottom: 0.9rem;
+	}
+
+	.pgp-card__check {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.58rem 0.65rem;
+		border-radius: 0.85rem;
+		background: var(--btn-regular-bg);
+	}
+
+	.pgp-card__check-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.8rem;
+		height: 1.8rem;
+		flex-shrink: 0;
+		border-radius: 0.65rem;
+		font-size: 1rem;
+	}
+
+	.pgp-card__check-icon--article {
+		background: color-mix(in oklab, var(--primary) 12%, transparent);
+		color: var(--primary);
+	}
+
+	.pgp-card__check-icon--git {
+		background: color-mix(in oklab, var(--admonitions-color-tip) 13%, transparent);
+		color: color-mix(in oklab, var(--admonitions-color-tip) 72%, black 12%);
+	}
+
+	.pgp-card__check-copy {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.08rem;
+	}
+
+	.pgp-card__check-copy span {
+		color: color-mix(in oklab, var(--deep-text) 46%, transparent);
+		font-size: 0.68rem;
+		font-weight: 800;
+		line-height: 1.15;
+		text-transform: uppercase;
+	}
+
+	.pgp-card__check-copy strong {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		color: var(--deep-text);
+		font-size: 0.84rem;
+		line-height: 1.25;
+	}
+
+	.pgp-card__check-copy code {
+		padding: 0.12rem 0.34rem;
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--primary) 9%, transparent);
+		color: var(--primary);
+		font-size: 0.68rem;
+	}
+
+	.pgp-card__fingerprint {
+		margin-bottom: 0.9rem;
+	}
+
+	.pgp-card__label {
+		margin-bottom: 0.25rem;
+		color: color-mix(in oklab, var(--deep-text) 46%, transparent);
+		font-size: 0.72rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.pgp-card__fingerprint code {
+		display: block;
+		overflow-wrap: anywhere;
+		padding: 0.6rem;
+		border-radius: 0.75rem;
+		background: var(--btn-regular-bg);
+		color: var(--deep-text);
+		font-size: 0.72rem;
+		line-height: 1.45;
+	}
+
+</style>

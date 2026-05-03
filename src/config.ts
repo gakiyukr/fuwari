@@ -10,6 +10,8 @@ import { LinkPreset } from "./types/config";
 
 const umamiShareUrl = import.meta.env.PUBLIC_UMAMI_SHARE_URL ?? "";
 const umamiShareId = umamiShareUrl.split("/").filter(Boolean).at(-1) ?? "";
+const pgpSigner = import.meta.env.PUBLIC_PGP_SIGNER ?? "gakiyukr";
+const pgpFingerprint = import.meta.env.PUBLIC_PGP_FINGERPRINT ?? "";
 
 export const siteConfig: SiteConfig = {
 	title: "Fuwari",
@@ -58,6 +60,14 @@ export const siteConfig: SiteConfig = {
 		websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID ?? "",
 		shareUrl: umamiShareUrl,
 		shareId: umamiShareId,
+	},
+	pgp: {
+		enable: true,
+		signer: pgpSigner,
+		publicKeyPath: "/pgp/gakiyukr.asc",
+		rawPostBaseUrl:
+			"https://raw.githubusercontent.com/gakiyukr/fuwari/main/src/content/posts",
+		fingerprint: pgpFingerprint,
 	},
 	favicon: [
 		// 留空数组使用默认 favicon

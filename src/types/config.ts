@@ -36,6 +36,7 @@ export type SiteConfig = {
 	};
 	comments: CommentsConfig;
 	analytics: AnalyticsConfig;
+	pgp: PGPConfig;
 
 	favicon: Favicon[];
 };
@@ -131,4 +132,12 @@ export type AnalyticsConfig = {
 	websiteId: string;
 	shareUrl: string;
 	shareId: string;
+};
+
+export type PGPConfig = {
+	enable: boolean;
+	signer: string;
+	publicKeyPath: string;
+	rawPostBaseUrl: string;
+	fingerprint: string;
 };
