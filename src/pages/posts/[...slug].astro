@@ -9,7 +9,7 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@utils/content-utils";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
-import { getPostHistory } from "@utils/git-log";
+import { getCommitSignatureStatus, getPostHistory } from "@utils/git-log";
 import { getPostFreshness } from "@utils/post-signals";
 import { getPostPGPSignature } from "@utils/pgp-utils";
 import { getDir } from "@utils/url-utils";
@@ -33,9 +33,10 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await entry.render();
-const pgpSignature = getPostPGPSignature(entry.slug);
 const gitHistory = await getPostHistory(entry.filePath ?? "");
 const latestRevision = gitHistory[0];
+const commitSignature = await getCommitSignatureStatus(latestRevision?.fullHash);
+const pgpSignature = getPostPGPSignature(entry.slug, commitSignature);
 const previousRevisions = gitHistory.slice(1);
 const gitUpdatedAt = latestRevision?.date
 	? new Date(latestRevision.date)

@@ -1,7 +1,7 @@
 ---
 import type { PGPSignatureInfo } from "@/types/pgp";
-import PGPVerifyButton from "./PGPVerifyButton.svelte";
 import { Icon } from "astro-icon/components";
+import PGPVerifyButton from "./PGPVerifyButton.svelte";
 
 interface Props {
 	signature: PGPSignatureInfo;
@@ -12,14 +12,14 @@ interface Props {
 const { signature, style } = Astro.props;
 const className = Astro.props.class;
 const fingerprint =
-	signature.fingerprint.trim() === ""
-		? "尚未配置"
-		: signature.fingerprint;
+	signature.fingerprint.trim() === "" ? "尚未配置" : signature.fingerprint;
 const articleStatusText = {
 	signed: "Signed",
 	unsigned: "Unsigned",
 	pending: "待接入",
 }[signature.articleStatus];
+const gitCommitText = signature.gitCommit.verified ? "Verified" : "Unsigned";
+const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.format})`;
 ---
 
 <aside class:list={["card-base p-4 pgp-card", className]} style={style}>
@@ -55,8 +55,8 @@ const articleStatusText = {
 			</div>
 			<div class="pgp-card__check-copy">
 				<span>Git Commit</span>
-				<strong>
-					{signature.gitCommit.verified ? "Verified" : "Unverified"}
+				<strong title={gitCommitTitle}>
+					{gitCommitText}
 					<code>{signature.gitCommit.shortHash}</code>
 				</strong>
 			</div>
@@ -125,7 +125,11 @@ const articleStatusText = {
 		padding: 0.45rem 0.6rem;
 		border-radius: 0.75rem;
 		background: color-mix(in oklab, var(--admonitions-color-tip) 12%, transparent);
-		color: color-mix(in oklab, var(--admonitions-color-tip) 70%, var(--deep-text) 30%);
+		color: color-mix(
+			in oklab,
+			var(--admonitions-color-tip) 70%,
+			var(--deep-text) 30%
+		);
 		font-size: 0.82rem;
 		font-weight: 700;
 	}
@@ -221,5 +225,4 @@ const articleStatusText = {
 		font-size: 0.72rem;
 		line-height: 1.45;
 	}
-
 </style>

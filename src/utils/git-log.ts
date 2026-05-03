@@ -16,8 +16,16 @@ export interface PostHistoryItem {
 	date: string;
 	message: string;
 	hash: string;
+	fullHash: string;
 	type: PostHistoryType;
 	typeLabel: string;
+}
+
+export interface CommitSignatureStatus {
+	shortHash: string;
+	signed: boolean;
+	format: "openpgp" | "ssh" | "x509" | "unknown" | "none";
+	reason: string;
 }
 
 function isMeaningfulCommit(message: string) {
@@ -79,6 +87,7 @@ export async function getPostHistory(filePath: string) {
 
 				return {
 					date,
+					fullHash: hash,
 					hash: hash.slice(0, 7),
 					rawMessage: message,
 					message,
@@ -91,4 +100,59 @@ export async function getPostHistory(filePath: string) {
 	} catch (_e) {
 		return [];
 	}
+}
+
+export async function getCommitSignatureStatus(
+	hash: string | undefined,
+): Promise<CommitSignatureStatus> {
+	if (!hash) {
+		return {
+			shortHash: "pending",
+			signed: false,
+			format: "unknown",
+			reason: "No commit found for this article",
+		};
+	}
+
+	try {
+		const raw = await git.raw(["cat-file", "-p", hash]);
+		const signatureHeader = raw.match(/^gpgsig (.+)$/m)?.[1] ?? "";
+		const format = getCommitSignatureFormat(signatureHeader);
+
+		return {
+			shortHash: hash.slice(0, 7),
+			signed: format !== "none",
+			format,
+			reason:
+				format === "none"
+					? "No signature embedded in this commit"
+					: `${format.toUpperCase()} signature embedded in this commit`,
+		};
+	} catch (_e) {
+		return {
+			shortHash: hash.slice(0, 7),
+			signed: false,
+			format: "unknown",
+			reason: "Unable to inspect this commit signature",
+		};
+	}
+}
+
+function getCommitSignatureFormat(
+	signatureHeader: string,
+): CommitSignatureStatus["format"] {
+	if (!signatureHeader) {
+		return "none";
+	}
+
+	if (signatureHeader.includes("SSH SIGNATURE")) {
+		return "ssh";
+	}
+	if (signatureHeader.includes("PGP SIGNATURE")) {
+		return "openpgp";
+	}
+	if (signatureHeader.includes("SIGNED MESSAGE")) {
+		return "x509";
+	}
+	return "unknown";
 }

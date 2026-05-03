@@ -6,6 +6,7 @@ export type PGPSignatureInfo = {
 		shortHash: string;
 		verified: boolean;
 		reason: string;
+		format: "openpgp" | "ssh" | "x509" | "unknown" | "none";
 	};
 	publicKeyUrl: string;
 	sourceUrl: string;
