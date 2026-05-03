@@ -147,16 +147,16 @@
 
 {#if panelState === "open"}
 	<div class:list={["pgp-verify", `pgp-verify--${verifyStatus}`]}>
-		<div class="pgp-verify__head">
-			<div class="pgp-verify__icon" aria-hidden="true">
-				<Icon icon={statusCopy[verifyStatus].icon} />
-			</div>
-			<div class="pgp-verify__copy">
-				<div class="pgp-verify__label">{statusCopy[verifyStatus].label}</div>
+		<div class="pgp-verify__label">{statusCopy[verifyStatus].label}</div>
+		<div class="pgp-verify__box">
+			<div class="pgp-verify__head">
+				<div class="pgp-verify__icon" aria-hidden="true">
+					<Icon icon={statusCopy[verifyStatus].icon} />
+				</div>
 				<div class="pgp-verify__title">{statusCopy[verifyStatus].title}</div>
 			</div>
+			<p>{verifyMessage}</p>
 		</div>
-		<p>{verifyMessage}</p>
 	</div>
 {/if}
 
@@ -206,6 +206,18 @@
 
 	.pgp-verify {
 		margin-top: 0.7rem;
+	}
+
+	.pgp-verify__label {
+		margin-bottom: 0.25rem;
+		color: color-mix(in oklab, var(--deep-text) 46%, transparent);
+		font-size: 0.72rem;
+		font-weight: 700;
+		line-height: 1.2;
+		text-transform: uppercase;
+	}
+
+	.pgp-verify__box {
 		padding: 0.58rem 0.65rem;
 		border-radius: 0.85rem;
 		background: var(--btn-regular-bg);
@@ -228,21 +240,6 @@
 		background: color-mix(in oklab, var(--primary) 12%, transparent);
 		color: var(--primary);
 		font-size: 1rem;
-	}
-
-	.pgp-verify__copy {
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.08rem;
-	}
-
-	.pgp-verify__label {
-		color: color-mix(in oklab, var(--deep-text) 46%, transparent);
-		font-size: 0.68rem;
-		font-weight: 800;
-		line-height: 1.15;
-		text-transform: uppercase;
 	}
 
 	.pgp-verify__title {
