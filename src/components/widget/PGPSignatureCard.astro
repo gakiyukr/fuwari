@@ -28,14 +28,14 @@ const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.for
 			<Icon name="material-symbols:encrypted-outline-rounded" />
 		</div>
 		<div>
-			<div class="pgp-card__eyebrow">PGP Signature</div>
-			<h2 class="pgp-card__title">PGP 簽名</h2>
+			<div class="pgp-card__eyebrow">PGP 签名</div>
+			<h2 class="pgp-card__title">PGP 签名</h2>
 		</div>
 	</div>
 
 	<div class="pgp-card__status">
 		<Icon name="material-symbols:verified-user-rounded" />
-		<span>由 {signature.signer} 簽名</span>
+		<span>由 {signature.signer} 签名</span>
 	</div>
 
 	<div class="pgp-card__checks">
@@ -44,7 +44,7 @@ const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.for
 				<Icon name="material-symbols:signature-rounded" />
 			</div>
 			<div class="pgp-card__check-copy">
-				<span>Article Signature</span>
+				<span>文章签名</span>
 				<strong>{articleStatusText}</strong>
 			</div>
 		</div>
@@ -54,7 +54,7 @@ const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.for
 				<Icon name="fa6-brands:github" />
 			</div>
 			<div class="pgp-card__check-copy">
-				<span>Git Commit</span>
+				<span>Git 提交</span>
 				<strong title={gitCommitTitle}>
 					{gitCommitText}
 					<code>{signature.gitCommit.shortHash}</code>
@@ -64,7 +64,7 @@ const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.for
 	</div>
 
 	<div class="pgp-card__fingerprint">
-		<div class="pgp-card__label">Fingerprint</div>
+		<div class="pgp-card__label">指纹</div>
 		<code>{fingerprint}</code>
 	</div>
 

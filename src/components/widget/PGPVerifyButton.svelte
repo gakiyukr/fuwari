@@ -11,32 +11,32 @@
 
 	let panelState: PanelState = "idle";
 	let verifyStatus: VerifyStatus = "idle";
-	let verifyMessage = "將抓取原文、.asc 和公鑰，並在瀏覽器本地完成驗證。";
+	let verifyMessage = "将抓取原文、.asc 和公钥，并在浏览器本地完成验证。";
 
 	const statusCopy: Record<VerifyStatus, { label: string; title: string; icon: string }> = {
 		idle: {
-			label: "Local Verification",
-			title: "待驗證",
+			label: "本地验证",
+			title: "待验证",
 			icon: "material-symbols:info-outline-rounded",
 		},
 		loading: {
-			label: "Local Verification",
-			title: "正在驗證",
+			label: "本地验证",
+			title: "正在验证",
 			icon: "material-symbols:progress-activity-rounded",
 		},
 		valid: {
-			label: "Local Verification",
-			title: "驗證通過",
+			label: "本地验证",
+			title: "验证通过",
 			icon: "material-symbols:verified-rounded",
 		},
 		invalid: {
-			label: "Local Verification",
-			title: "簽名不匹配",
+			label: "本地验证",
+			title: "签名不匹配",
 			icon: "material-symbols:warning-outline-rounded",
 		},
 		error: {
-			label: "Local Verification",
-			title: "驗證失敗",
+			label: "本地验证",
+			title: "验证失败",
 			icon: "material-symbols:error-outline-rounded",
 		},
 	};
@@ -53,7 +53,7 @@
 
 	async function verifySignature() {
 		verifyStatus = "loading";
-		verifyMessage = "正在下載驗證所需文件...";
+		verifyMessage = "正在下载验证所需文件...";
 
 		try {
 			const openpgp = await import("openpgp");
@@ -65,16 +65,16 @@
 				]);
 
 			if (!sourceResponse.ok) {
-				throw new Error("無法下載原文");
+				throw new Error("无法下载原文");
 			}
 			if (!signatureResponse.ok) {
-				throw new Error("無法下載 .asc 簽名");
+				throw new Error("无法下载 .asc 签名");
 			}
 			if (!publicKeyResponse.ok) {
-				throw new Error("無法下載公鑰");
+				throw new Error("无法下载公钥");
 			}
 
-			verifyMessage = "正在比對原文與 detached signature...";
+			verifyMessage = "正在比对原文与 detached signature...";
 
 			const sourceBytes = new Uint8Array(await sourceResponse.arrayBuffer());
 			const armoredSignature = await signatureResponse.text();
@@ -88,14 +88,14 @@
 
 			await verification.signatures[0]?.verified;
 			verifyStatus = "valid";
-			verifyMessage = "原文與 .asc 匹配，簽名也來自此公鑰。";
+			verifyMessage = "原文与 .asc 匹配，签名也来自此公钥。";
 		} catch (error) {
 			verifyStatus =
 				error instanceof Error && error.message.includes("Signature")
 					? "invalid"
 					: "error";
 			verifyMessage =
-				error instanceof Error ? error.message : "發生未知錯誤";
+				error instanceof Error ? error.message : "发生未知错误";
 		}
 	}
 </script>
@@ -118,7 +118,7 @@
 			{#if panelState === "open"}
 				返回
 			{:else}
-				在線驗證
+				在线验证
 			{/if}
 		</span>
 	</button>
@@ -141,7 +141,7 @@
 		<span class="pgp-action__icon" aria-hidden="true">
 			<Icon icon="material-symbols:key-outline-rounded" />
 		</span>
-		<span>公鑰</span>
+		<span>公钥</span>
 	</a>
 </div>
 
@@ -205,7 +205,7 @@
 	}
 
 	.pgp-verify {
-		margin-top: 0.7rem;
+		margin-top: 0.95rem;
 	}
 
 	.pgp-verify__label {
