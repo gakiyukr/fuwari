@@ -13,8 +13,14 @@ export function getPostPGPSignature(
 
 	const rawBaseUrl = siteConfig.pgp.rawPostBaseUrl.replace(/\/$/, "");
 	const safeSlug = slug.split("/").join("__");
+	const hasSigningKey = Boolean(
+		process.env.PGP_PRIVATE_KEY_BASE64?.trim() ||
+			process.env.PGP_PRIVATE_KEY?.trim(),
+	);
 	const articleStatus =
-		import.meta.env.PGP_SIGNING_ENABLED === "true" ? "signed" : "pending";
+		process.env.PGP_SIGNING_ENABLED === "true" && hasSigningKey
+			? "signed"
+			: "pending";
 
 	return {
 		signer: siteConfig.pgp.signer,
@@ -22,12 +28,14 @@ export function getPostPGPSignature(
 		articleStatus,
 		gitCommit: {
 			shortHash: commitSignature?.shortHash ?? "pending",
+			fullHash: commitSignature?.fullHash ?? "",
 			verified: commitSignature?.signed ?? false,
 			reason: commitSignature?.reason ?? "Commit signature not inspected yet",
 			format: commitSignature?.format ?? "unknown",
 		},
-		publicKeyUrl: url("/about/#pgp-public-key"),
-		sourceUrl: `${rawBaseUrl}/${slug}/index.md`,
+		publicKeyUrl: url(siteConfig.pgp.publicKeyPath),
+		publicKeyPageUrl: url("/about/#pgp-public-key"),
+		sourceUrl: `${rawBaseUrl.replace("/main/", `/${commitSignature?.fullHash || "main"}/`)}/${slug}/index.md`,
 		signatureUrl: url(`/pgp/posts/${safeSlug}.md.asc`),
 	};
 }

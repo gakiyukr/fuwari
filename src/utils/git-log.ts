@@ -23,6 +23,7 @@ export interface PostHistoryItem {
 
 export interface CommitSignatureStatus {
 	shortHash: string;
+	fullHash: string;
 	signed: boolean;
 	format: "openpgp" | "ssh" | "x509" | "unknown" | "none";
 	reason: string;
@@ -108,6 +109,7 @@ export async function getCommitSignatureStatus(
 	if (!hash) {
 		return {
 			shortHash: "pending",
+			fullHash: "",
 			signed: false,
 			format: "unknown",
 			reason: "No commit found for this article",
@@ -115,12 +117,18 @@ export async function getCommitSignatureStatus(
 	}
 
 	try {
+		const githubStatus = await getGitHubCommitSignatureStatus(hash);
+		if (githubStatus) {
+			return githubStatus;
+		}
+
 		const raw = await git.raw(["cat-file", "-p", hash]);
 		const signatureHeader = raw.match(/^gpgsig (.+)$/m)?.[1] ?? "";
 		const format = getCommitSignatureFormat(signatureHeader);
 
 		return {
 			shortHash: hash.slice(0, 7),
+			fullHash: hash,
 			signed: format !== "none",
 			format,
 			reason:
@@ -131,6 +139,7 @@ export async function getCommitSignatureStatus(
 	} catch (_e) {
 		return {
 			shortHash: hash.slice(0, 7),
+			fullHash: hash,
 			signed: false,
 			format: "unknown",
 			reason: "Unable to inspect this commit signature",
@@ -155,4 +164,81 @@ function getCommitSignatureFormat(
 		return "x509";
 	}
 	return "unknown";
+}
+
+async function getGitHubCommitSignatureStatus(
+	hash: string,
+): Promise<CommitSignatureStatus | undefined> {
+	const repoSlug = await getGitHubRepoSlug();
+	if (!repoSlug) {
+		return undefined;
+	}
+
+	try {
+		const response = await fetch(
+			`https://api.github.com/repos/${repoSlug}/commits/${hash}`,
+			{
+				headers: {
+					Accept: "application/vnd.github+json",
+					"User-Agent": "fuwari-pgp-signature-check",
+				},
+				signal: AbortSignal.timeout(3500),
+			},
+		);
+		if (!response.ok) {
+			return undefined;
+		}
+
+		const payload = (await response.json()) as {
+			commit?: {
+				verification?: {
+					verified?: boolean;
+					reason?: string;
+					signature?: string | null;
+				};
+			};
+		};
+		const verification = payload.commit?.verification;
+		if (!verification) {
+			return undefined;
+		}
+
+		const format = getCommitSignatureFormat(verification.signature ?? "");
+		return {
+			shortHash: hash.slice(0, 7),
+			fullHash: hash,
+			signed: verification.verified === true,
+			format,
+			reason: verification.reason ?? "GitHub verification status unavailable",
+		};
+	} catch (_e) {
+		return undefined;
+	}
+}
+
+async function getGitHubRepoSlug() {
+	const owner = process.env.VERCEL_GIT_REPO_OWNER;
+	const repo = process.env.VERCEL_GIT_REPO_SLUG;
+	if (owner && repo) {
+		return `${owner}/${repo}`;
+	}
+
+	try {
+		const remoteUrl = (await git.raw(["config", "--get", "remote.origin.url"])).trim();
+		return parseGitHubRepoSlug(remoteUrl);
+	} catch (_e) {
+		return "gakiyukr/fuwari";
+	}
+}
+
+function parseGitHubRepoSlug(remoteUrl: string) {
+	const match =
+		remoteUrl.match(/github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/.]+)(?:\.git)?$/) ??
+		remoteUrl.match(/^https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/.]+)(?:\.git)?$/);
+
+	if (!match?.groups) {
+		return "gakiyukr/fuwari";
+	}
+
+	return `${match.groups.owner}/${match.groups.repo}`;
 }

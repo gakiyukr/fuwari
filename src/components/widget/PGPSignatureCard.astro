@@ -18,7 +18,7 @@ const articleStatusText = {
 	unsigned: "Unsigned",
 	pending: "待接入",
 }[signature.articleStatus];
-const gitCommitText = signature.gitCommit.verified ? "Verified" : "Unsigned";
+const gitCommitText = signature.gitCommit.verified ? "Verified" : "Unverified";
 const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.format})`;
 ---
 
@@ -73,6 +73,7 @@ const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.for
 		signatureUrl={signature.signatureUrl}
 		sourceUrl={signature.sourceUrl}
 		publicKeyUrl={signature.publicKeyUrl}
+		publicKeyPageUrl={signature.publicKeyPageUrl}
 	/>
 </aside>
 

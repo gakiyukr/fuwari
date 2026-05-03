@@ -6,6 +6,7 @@ import * as openpgp from "openpgp";
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const postsDir = path.join(rootDir, "src", "content", "posts");
 const outputDir = path.join(rootDir, "dist", "pgp", "posts");
+const publicKeyOutputPath = path.join(rootDir, "dist", "pgp", "gakiyukr.asc");
 
 await loadDotEnv(path.join(rootDir, ".env"));
 
@@ -35,6 +36,7 @@ let signedCount = 0;
 let skippedCount = 0;
 
 await fs.mkdir(outputDir, { recursive: true });
+await writePublicKey(signingKey);
 
 for (const filePath of postFiles) {
 	const source = await fs.readFile(filePath);
@@ -63,6 +65,11 @@ for (const filePath of postFiles) {
 console.log(
 	`[pgp] Signed ${signedCount} post(s). Skipped ${skippedCount} draft post(s).`,
 );
+
+async function writePublicKey(signingKey) {
+	await fs.mkdir(path.dirname(publicKeyOutputPath), { recursive: true });
+	await fs.writeFile(publicKeyOutputPath, signingKey.toPublic().armor());
+}
 
 async function loadDotEnv(envPath) {
 	let content;

@@ -1,16 +1,76 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
 
-	type VerifyState = "idle" | "open";
+	type PanelState = "idle" | "open";
+	type VerifyStatus = "idle" | "loading" | "valid" | "invalid" | "error";
 
 	export let signatureUrl: string;
 	export let sourceUrl: string;
 	export let publicKeyUrl: string;
+	export let publicKeyPageUrl: string;
 
-	let state: VerifyState = "idle";
+	let panelState: PanelState = "idle";
+	let verifyStatus: VerifyStatus = "idle";
+	let verifyMessage = "在線驗證會抓取原文、.asc 和公鑰，並在瀏覽器本地完成。";
 
-	function togglePanel() {
-		state = state === "idle" ? "open" : "idle";
+	async function togglePanel() {
+		if (panelState === "open") {
+			panelState = "idle";
+			return;
+		}
+
+		panelState = "open";
+		if (verifyStatus === "idle") {
+			await verifySignature();
+		}
+	}
+
+	async function verifySignature() {
+		verifyStatus = "loading";
+		verifyMessage = "正在驗證簽名...";
+
+		try {
+			const openpgp = await import("openpgp");
+			const [sourceResponse, signatureResponse, publicKeyResponse] =
+				await Promise.all([
+					fetch(sourceUrl),
+					fetch(signatureUrl),
+					fetch(publicKeyUrl),
+				]);
+
+			if (!sourceResponse.ok) {
+				throw new Error("無法下載原文");
+			}
+			if (!signatureResponse.ok) {
+				throw new Error("無法下載 .asc 簽名");
+			}
+			if (!publicKeyResponse.ok) {
+				throw new Error("無法下載公鑰");
+			}
+
+			const sourceBytes = new Uint8Array(await sourceResponse.arrayBuffer());
+			const armoredSignature = await signatureResponse.text();
+			const armoredPublicKey = await publicKeyResponse.text();
+
+			const verification = await openpgp.verify({
+				message: await openpgp.createMessage({ binary: sourceBytes }),
+				signature: await openpgp.readSignature({ armoredSignature }),
+				verificationKeys: await openpgp.readKey({ armoredKey: armoredPublicKey }),
+			});
+
+			await verification.signatures[0]?.verified;
+			verifyStatus = "valid";
+			verifyMessage = "驗證通過：原文與 .asc 匹配，且簽名來自此公鑰。";
+		} catch (error) {
+			verifyStatus =
+				error instanceof Error && error.message.includes("Signature")
+					? "invalid"
+					: "error";
+			verifyMessage =
+				error instanceof Error
+					? `驗證失敗：${error.message}`
+					: "驗證失敗：未知錯誤";
+		}
 	}
 </script>
 
@@ -19,17 +79,17 @@
 		type="button"
 		class="pgp-action"
 		onclick={togglePanel}
-		aria-expanded={state === "open"}
+		aria-expanded={panelState === "open"}
 	>
 		<span class="pgp-action__icon" aria-hidden="true">
-			{#if state === "open"}
+			{#if panelState === "open"}
 				<Icon icon="material-symbols:arrow-back-rounded" />
 			{:else}
 				<Icon icon="material-symbols:fact-check-outline-rounded" />
 			{/if}
 		</span>
 		<span>
-			{#if state === "open"}
+			{#if panelState === "open"}
 				返回
 			{:else}
 				在線驗證
@@ -51,7 +111,7 @@
 		<span>原文</span>
 	</a>
 
-	<a class="pgp-action" href={publicKeyUrl}>
+	<a class="pgp-action" href={publicKeyPageUrl}>
 		<span class="pgp-action__icon" aria-hidden="true">
 			<Icon icon="material-symbols:key-outline-rounded" />
 		</span>
@@ -59,9 +119,9 @@
 	</a>
 </div>
 
-{#if state === "open"}
-	<p class="pgp-verify__message">
-		在線驗證邏輯將在接入 OpenPGP 後啟用。
+{#if panelState === "open"}
+	<p class:list={["pgp-verify__message", `pgp-verify__message--${verifyStatus}`]}>
+		{verifyMessage}
 	</p>
 {/if}
 
@@ -114,5 +174,14 @@
 		color: color-mix(in oklab, var(--deep-text) 52%, transparent);
 		font-size: 0.74rem;
 		line-height: 1.45;
+	}
+
+	.pgp-verify__message--valid {
+		color: color-mix(in oklab, var(--admonitions-color-tip) 76%, var(--deep-text) 24%);
+	}
+
+	.pgp-verify__message--invalid,
+	.pgp-verify__message--error {
+		color: color-mix(in oklab, var(--admonitions-color-warning) 78%, var(--deep-text) 22%);
 	}
 </style>
