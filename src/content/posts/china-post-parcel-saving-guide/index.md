@@ -1,8 +1,9 @@
 ---
 title: 又是一年毕业季——通过中国邮政普通包裹最大化节省运费
 published: 2026-04-30
-description: 全自动填写滨寿司中国调查问卷，获得优惠券验证码。
-tags: []
+description: 缅邮业务指南——普包
+tags:
+  - 邮政
 category: 奇技淫巧
 draft: false
 ---
