@@ -14,8 +14,9 @@
 ---
 title: 文章标题
 published: 2026-04-18
+updated: 2026-04-20
 description: 简短摘要
-image: ''
+image: ./cover.jpg
 tags:
   - 旅行
 category: 旅行
@@ -29,8 +30,32 @@ lang: ''
 - `title` 是文章标题，也是自动提交脚本生成提交信息时会读取的字段。
 - `description` 会用于文章摘要，也会被 `pnpm post-commit` 放进提交信息。
 - `published` 使用 `YYYY-MM-DD` 格式。
+- `updated` 可选，用于标记文章最后修改日期；没有修改日期时可以不写。
+- `image` 是文章封面图。可以写网络图片、`public` 目录下的绝对路径，或相对于当前 Markdown 文件的本地图片，例如 `./cover.jpg`。
 - `draft: true` 表示草稿，`draft: false` 表示发布。
 - `tags` 和 `category` 用于归档与筛选。
+- `prevTitle`、`prevSlug`、`nextTitle`、`nextSlug` 是内部字段，正常写文章不要手动填写。
+
+草稿显示规则：
+
+- 本地开发环境会显示草稿，方便预览。
+- 生产构建会隐藏 `draft: true` 的文章。
+
+如果文章有标题图片或配图，推荐使用文章子目录，把正文写成 `index.md`，图片放在同一目录：
+
+```text
+src/content/posts/my-post/
+├── index.md
+└── cover.jpeg
+```
+
+然后在 `index.md` 的 frontmatter 里写：
+
+```yaml
+image: ./cover.jpeg
+```
+
+这种写法最适合文章专属封面图，移动、备份和删除文章时也更好整理。
 
 ---
 
@@ -42,6 +67,12 @@ lang: ''
 
 ```markdown
 这是一段正常文字，||这是一段被隐藏的内容||，然后段落继续。
+```
+
+草稿里还展示了文本指令写法，这种写法可以在隐藏内容里继续使用 Markdown：
+
+```markdown
+The content :spoiler[is hidden **ayyy**]!
 ```
 
 适合用途：
@@ -75,6 +106,14 @@ lang: ''
 
 :::caution
 这是严重风险提示。
+:::
+```
+
+提示框可以自定义标题：
+
+```markdown
+:::note[自定义标题]
+这是带自定义标题的笔记。
 :::
 ```
 
@@ -179,6 +218,35 @@ console.log("Hello Fuwari!");
 ```
 ````
 
+草稿里的 `expressive-code.md` 还展示了这些常用参数：
+
+````markdown
+```bash title="PowerShell terminal example"
+echo "带标题的终端代码块"
+```
+
+```sh frame="none"
+echo "不显示代码框架"
+```
+
+```diff lang="js"
+- console.log("old")
++ console.log("new")
+```
+
+```js wrap=false
+const longText = "这段很长的内容不会自动换行"
+```
+
+```js showLineNumbers startLineNumber=5
+console.log("从第 5 行开始显示行号")
+```
+
+```ansi
+ANSI 颜色输出也可以渲染
+```
+````
+
 ---
 
 ## 8. Mermaid 图表
@@ -204,7 +272,71 @@ flowchart TD
 
 ---
 
-## 9. 外链自动处理
+## 9. 常规 Markdown 扩展
+
+草稿里的 `markdown.md` 展示了几种 Pandoc/GFM 风格写法，适合偶尔需要更复杂排版时使用。
+
+脚注：
+
+```markdown
+这里有一个脚注引用[^1]。
+
+[^1]: 脚注内容写在这里。
+```
+
+定义列表：
+
+```markdown
+apples
+: Good for making applesauce.
+
+oranges
+: Citrus!
+```
+
+行块：
+
+```markdown
+| Line one
+| Line two
+| Line three
+```
+
+表格优先使用普通 Markdown 表格：
+
+```markdown
+| 尺寸 | 材质 | 颜色 |
+| --- | --- | --- |
+| 9 | leather | brown |
+```
+
+---
+
+## 10. 视频嵌入
+
+草稿里的 `video.md` 使用原始 HTML `<iframe>` 嵌入视频。直接复制 YouTube、Bilibili 等平台提供的嵌入代码即可。
+
+YouTube：
+
+```html
+<iframe width="100%" height="468" src="https://www.youtube.com/embed/5gIf0_xpFPI" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+```
+
+Bilibili：
+
+```html
+<iframe width="100%" height="468" src="//player.bilibili.com/player.html?bvid=BV1fK4y1s7Qf&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+```
+
+建议：
+
+- `width` 使用 `100%`，避免移动端溢出。
+- `height` 可以先用 `468`，如果画面比例不合适再按文章实际效果调整。
+- 文章里可以直接放 HTML，但不要把 iframe 放进代码块，否则只会显示源码。
+
+---
+
+## 11. 外链自动处理
 
 Markdown 里的外部链接会在构建时自动加上安全属性：
 
@@ -227,7 +359,7 @@ rel="noopener noreferrer"
 
 ---
 
-## 10. 自动摘要与阅读时间
+## 12. 自动摘要与阅读时间
 
 项目包含 `remarkExcerpt` 和 `remarkReadingTime`。
 
@@ -239,7 +371,7 @@ rel="noopener noreferrer"
 
 ---
 
-## 11. 新建文章脚本
+## 13. 新建文章脚本
 
 命令：
 
@@ -273,7 +405,7 @@ lang: ''
 
 ---
 
-## 12. 文章自动提交脚本
+## 14. 文章自动提交脚本
 
 命令：
 
@@ -308,7 +440,7 @@ posts: update "Title": description
 
 ---
 
-## 13. 图片排版修复脚本
+## 15. 图片排版修复脚本
 
 命令：
 
@@ -347,11 +479,162 @@ pnpm fix-images -- --write
 
 ---
 
-## 14. 常用维护命令
+## 16. 本地开发与代码维护命令
+
+开发服务器：
+
+```powershell
+pnpm dev
+pnpm start
+```
+
+这两个命令等价，都会启动 Astro 本地开发服务器。开发环境中草稿文章也会显示。
+
+生产预览：
+
+```powershell
+pnpm build
+pnpm preview
+```
+
+- `pnpm build` 会生成 `dist/`，并在构建后执行 PGP 签名和 Pagefind 搜索索引。
+- `pnpm preview` 用来预览已经构建好的站点。
+- 搜索功能依赖 Pagefind，只有生产构建后才有完整搜索索引；开发环境里搜索会显示开发提示。
+
+检查和格式化：
 
 ```powershell
 pnpm check
+pnpm type-check
+pnpm format
+pnpm lint
+```
+
+- `pnpm check` 运行 Astro 检查。
+- `pnpm type-check` 运行 TypeScript 类型检查。
+- `pnpm format` 会格式化 `src/`。
+- `pnpm lint` 会用 Biome 检查并自动修复 `src/`。
+
+---
+
+## 17. PGP 文章签名构建
+
+构建命令里已经包含 PGP 签名流程：
+
+```powershell
 pnpm build
+```
+
+实际执行顺序是：
+
+```text
+astro build
+node scripts/sign-pgp-posts.js
+pagefind --site dist
+```
+
+PGP 签名脚本会：
+
+- 扫描 `src/content/posts/**/index.md`。
+- 跳过 `Draft` 文件夹、`.obsidian` 文件夹和 `draft: true` 的文章。
+- 为每篇正式文章生成 detached signature。
+- 输出到 `dist/pgp/posts/<slug>.md.asc`。
+- 输出公钥到 `dist/pgp/gakiyukr.asc`。
+
+需要的环境变量：
+
+```env
+PUBLIC_PGP_SIGNER=gakiyukr
+PUBLIC_PGP_FINGERPRINT=你的公钥指纹
+PGP_SIGNING_ENABLED=true
+PGP_REQUIRE_SIGNATURES=true
+PGP_PRIVATE_KEY_BASE64=你的私钥base64
+PGP_PRIVATE_KEY_PASSPHRASE=你的私钥密码
+```
+
+说明：
+
+- `PUBLIC_PGP_SIGNER` 和 `PUBLIC_PGP_FINGERPRINT` 用于前端展示。
+- `PGP_SIGNING_ENABLED=true` 才会启用构建签名。
+- `PGP_REQUIRE_SIGNATURES=true` 时，如果缺少私钥会让构建失败，避免静默漏签。
+- `PGP_PRIVATE_KEY_BASE64` 是 armored 私钥文本转成 Base64 后的值。
+- 也支持 `PGP_PRIVATE_KEY`，但部署平台里更推荐使用 Base64，避免换行问题。
+
+---
+
+## 18. 站点环境变量
+
+`.env.example` 里记录了当前站点会读取的环境变量。
+
+Umami 统计：
+
+```env
+PUBLIC_UMAMI_SRC=
+PUBLIC_UMAMI_WEBSITE_ID=
+PUBLIC_UMAMI_SHARE_URL=
+```
+
+- `PUBLIC_UMAMI_SRC` 和 `PUBLIC_UMAMI_WEBSITE_ID` 都存在时才启用统计。
+- `PUBLIC_UMAMI_SHARE_URL` 用于统计分享页链接。
+
+PGP 签名：
+
+```env
+PUBLIC_PGP_SIGNER=
+PUBLIC_PGP_FINGERPRINT=
+PGP_SIGNING_ENABLED=
+PGP_REQUIRE_SIGNATURES=
+PGP_PRIVATE_KEY_BASE64=
+PGP_PRIVATE_KEY_PASSPHRASE=
+```
+
+其他：
+
+```env
+GEMINI_API_KEY=
+```
+
+当前代码里没有直接使用 `GEMINI_API_KEY`，可以先保留为空。
+
+---
+
+## 19. 文章页自动功能
+
+这些功能不需要在文章里手写组件，只要文章正常放在 `src/content/posts/` 下就会自动生效。
+
+修订历史：
+
+- 文章页会读取当前文章文件的 Git 历史。
+- 如果有历史记录，会显示“本文更新记录”。
+- 最近一次提交会用于“最后修改”日期。
+- GitHub 提交签名状态会显示在 PGP 签名卡片里。
+
+内容新鲜度提示：
+
+- 文章页会根据 `published`、`updated` 和 Git 最新提交日期显示文章是否较旧。
+- 如果文章有修订历史，会提供跳转到更新记录的入口。
+
+文章底部功能：
+
+- 如果 `licenseConfig.enable` 为 `true`，文章底部会显示许可证。
+- 如果 `gitHubEditConfig.enable` 为 `true`，文章底部会显示 GitHub 编辑入口。
+- 如果评论配置完整，文章底部会显示 Giscus 评论区。
+
+RSS、Sitemap、robots：
+
+- `src/pages/rss.xml.ts` 会生成 RSS。
+- `@astrojs/sitemap` 会生成站点地图。
+- `src/pages/robots.txt.ts` 会生成 robots 文件并指向 sitemap。
+
+---
+
+## 20. 常用维护命令
+
+```powershell
+pnpm dev
+pnpm check
+pnpm build
+pnpm preview
 pnpm fix-images
 pnpm fix-images -- --write
 pnpm post-commit

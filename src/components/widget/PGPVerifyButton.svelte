@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
+	import { onMount } from "svelte";
 
-	type PanelState = "idle" | "open";
 	type VerifyStatus = "idle" | "loading" | "valid" | "invalid" | "error";
 
 	export let signatureUrl: string;
@@ -9,7 +9,6 @@
 	export let publicKeyUrl: string;
 	export let publicKeyPageUrl: string;
 
-	let panelState: PanelState = "idle";
 	let verifyStatus: VerifyStatus = "idle";
 	let verifyMessage = "将抓取原文、.asc 和公钥，并在浏览器本地完成验证。";
 
@@ -41,15 +40,9 @@
 		},
 	};
 
-	async function togglePanel() {
-		if (panelState === "open") {
-			panelState = "idle";
-			return;
-		}
-
-		panelState = "open";
-		await verifySignature();
-	}
+	onMount(() => {
+		void verifySignature();
+	});
 
 	async function verifySignature() {
 		verifyStatus = "loading";
@@ -101,29 +94,7 @@
 </script>
 
 <div class="pgp-actions">
-	<button
-		type="button"
-		class="pgp-action"
-		onclick={togglePanel}
-		aria-expanded={panelState === "open"}
-	>
-		<span class="pgp-action__icon" aria-hidden="true">
-			{#if panelState === "open"}
-				<Icon icon="material-symbols:arrow-back-rounded" />
-			{:else}
-				<Icon icon="material-symbols:fact-check-outline-rounded" />
-			{/if}
-		</span>
-		<span>
-			{#if panelState === "open"}
-				返回
-			{:else}
-				在线验证
-			{/if}
-		</span>
-	</button>
-
-	<a class="pgp-action" href={signatureUrl} download>
+	<a class="pgp-action pgp-action--signature" href={signatureUrl} download>
 		<span class="pgp-action__icon" aria-hidden="true">
 			<Icon icon="material-symbols:signature-rounded" />
 		</span>
@@ -145,20 +116,18 @@
 	</a>
 </div>
 
-{#if panelState === "open"}
-	<div class:list={["pgp-verify", `pgp-verify--${verifyStatus}`]}>
-		<div class="pgp-verify__label">{statusCopy[verifyStatus].label}</div>
-		<div class="pgp-verify__box">
-			<div class="pgp-verify__head">
-				<div class="pgp-verify__icon" aria-hidden="true">
-					<Icon icon={statusCopy[verifyStatus].icon} />
-				</div>
-				<div class="pgp-verify__title">{statusCopy[verifyStatus].title}</div>
+<div class:list={["pgp-verify", `pgp-verify--${verifyStatus}`]}>
+	<div class="pgp-verify__label">{statusCopy[verifyStatus].label}</div>
+	<div class="pgp-verify__box">
+		<div class="pgp-verify__head">
+			<div class="pgp-verify__icon" aria-hidden="true">
+				<Icon icon={statusCopy[verifyStatus].icon} />
 			</div>
-			<p>{verifyMessage}</p>
+			<div class="pgp-verify__title">{statusCopy[verifyStatus].title}</div>
 		</div>
+		<p>{verifyMessage}</p>
 	</div>
-{/if}
+</div>
 
 <style>
 	.pgp-actions {
@@ -196,6 +165,10 @@
 	.pgp-action:active {
 		transform: translateY(1px);
 		background: var(--btn-regular-bg-active);
+	}
+
+	.pgp-action--signature {
+		grid-column: 1 / -1;
 	}
 
 	.pgp-action__icon {
