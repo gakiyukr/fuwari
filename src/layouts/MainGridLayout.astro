@@ -5,7 +5,8 @@ import Navbar from "@components/Navbar.astro";
 import SideBar from "@components/widget/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import { Icon } from "astro-icon/components";
-import type { PGPSignatureInfo } from "@/types/pgp";
+// 文章頁面的簽名驗證功能暫時停用。
+// import type { PGPSignatureInfo } from "@/types/pgp";
 import ImageWrapper from "../components/misc/ImageWrapper.astro";
 import TOC from "../components/widget/TOC.astro";
 import { siteConfig } from "../config";
@@ -23,7 +24,7 @@ interface Props {
 	lang?: string;
 	setOGTypeArticle?: boolean;
 	headings?: MarkdownHeading[];
-	pgpSignature?: PGPSignatureInfo;
+	// pgpSignature?: PGPSignatureInfo;
 }
 
 const {
@@ -33,7 +34,7 @@ const {
 	lang,
 	setOGTypeArticle,
 	headings = [],
-	pgpSignature,
+	// pgpSignature,
 } = Astro.props;
 const hasBannerCredit =
 	siteConfig.banner.enable && siteConfig.banner.credit.enable;
@@ -83,7 +84,8 @@ const mainPanelTop = siteConfig.banner.enable
             </a>}
 
 
-            <SideBar class="mb-4 row-start-2 row-end-3 col-span-2 lg:row-start-1 lg:row-end-2 lg:col-span-1 lg:max-w-[17.5rem] onload-animation" headings={headings} pgpSignature={pgpSignature}></SideBar>
+            {/* SideBar 的 pgpSignature 屬性傳遞暫時停用。 */}
+            <SideBar class="mb-4 row-start-2 row-end-3 col-span-2 lg:row-start-1 lg:row-end-2 lg:col-span-1 lg:max-w-[17.5rem] onload-animation" headings={headings}></SideBar>
 
             <main id="swup-container" class="transition-swup-fade col-span-2 lg:col-span-1 overflow-hidden">
                 <div id="content-wrapper" class="onload-animation">

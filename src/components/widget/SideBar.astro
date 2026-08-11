@@ -1,19 +1,20 @@
 ---
 import type { MarkdownHeading } from "astro";
-import type { PGPSignatureInfo } from "@/types/pgp";
+// 文章頁面的簽名驗證功能暫時停用。
+// import type { PGPSignatureInfo } from "@/types/pgp";
 import Categories from "./Categories.astro";
-import PGPSignatureCard from "./PGPSignatureCard.astro";
+// import PGPSignatureCard from "./PGPSignatureCard.astro";
 import Profile from "./Profile.astro";
 import Tag from "./Tags.astro";
 
 interface Props {
 	class?: string;
 	headings?: MarkdownHeading[];
-	pgpSignature?: PGPSignatureInfo;
+	// pgpSignature?: PGPSignatureInfo;
 }
 
 const className = Astro.props.class;
-const { pgpSignature } = Astro.props;
+// const { pgpSignature } = Astro.props;
 ---
 <div id="sidebar" class:list={[className, "w-full"]}>
     <div class="flex flex-col w-full gap-4 mb-4">
@@ -22,6 +23,7 @@ const { pgpSignature } = Astro.props;
     <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-4 top-4 sticky top-4">
         <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
         <Tag class="onload-animation" style="animation-delay: 200ms"></Tag>
+        {/* 簽名驗證卡片暫時停用。
         {pgpSignature && (
             <PGPSignatureCard
                 signature={pgpSignature}
@@ -29,5 +31,6 @@ const { pgpSignature } = Astro.props;
                 style="animation-delay: 250ms"
             />
         )}
+        */}
     </div>
 </div>

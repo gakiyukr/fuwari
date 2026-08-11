@@ -58,7 +58,8 @@ tmp/
 temp/
 .codex-tmp/
 
-# Obsidian local workspace state
+# Obsidian 本機外掛、工作區狀態與快取
+src/content/posts/.obsidian/plugins/
 src/content/posts/.obsidian/workspace.json
 src/content/posts/.obsidian/workspace-mobile.json
 src/content/posts/.obsidian/cache/

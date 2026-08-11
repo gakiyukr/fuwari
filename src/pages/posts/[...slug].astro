@@ -9,9 +9,11 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@utils/content-utils";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
-import { getCommitSignatureStatus, getPostHistory } from "@utils/git-log";
+import { getPostHistory } from "@utils/git-log";
 import { getPostFreshness } from "@utils/post-signals";
-import { getPostPGPSignature } from "@utils/pgp-utils";
+// 文章頁面的簽名驗證功能暫時停用。
+// import { getCommitSignatureStatus } from "@utils/git-log";
+// import { getPostPGPSignature } from "@utils/pgp-utils";
 import { getDir } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import {
@@ -35,8 +37,9 @@ const { entry } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 const gitHistory = await getPostHistory(entry.filePath ?? "");
 const latestRevision = gitHistory[0];
-const commitSignature = await getCommitSignatureStatus(latestRevision?.fullHash);
-const pgpSignature = getPostPGPSignature(entry.slug, commitSignature);
+// const commitSignature = await getCommitSignatureStatus(latestRevision?.fullHash);
+// const pgpSignature = getPostPGPSignature(entry.slug, commitSignature);
+// MainGridLayout 的 pgpSignature 屬性傳遞亦暫時停用。
 const previousRevisions = gitHistory.slice(1);
 const gitUpdatedAt = latestRevision?.date
 	? new Date(latestRevision.date)
@@ -85,7 +88,6 @@ const jsonLd = {
 	lang={entry.data.lang}
 	setOGTypeArticle={true}
 	headings={headings}
-	pgpSignature={pgpSignature}
 >
 	<script
 		is:inline
