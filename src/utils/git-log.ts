@@ -9,6 +9,12 @@ const HIDDEN_COMMIT_PATTERNS = [
 	/^(chore|style|ci|build|test)(\(.+\))?!?:/i,
 	/^(lint|format)(\b|:)/i,
 ];
+const FEATURE_COMMIT_PATTERN = /^feat(\(.+\))?!?:/i;
+const FIX_COMMIT_PATTERNS = [/^fix(\(.+\))?!?:/i, /^fix\b/i];
+const CONTENT_COMMIT_PATTERNS = [
+	/^(content|posts?|article|update)(\(.+\))?!?:/i,
+	/^(add|remove|refine|clarify|expand|polish|refresh|update|publish)\b/i,
+];
 
 export type PostHistoryType = "feat" | "fix" | "content" | "other";
 
@@ -29,28 +35,28 @@ export interface CommitSignatureStatus {
 	reason: string;
 }
 
-function isMeaningfulCommit(message: string) {
+export function isMeaningfulCommit(message: string) {
 	return !HIDDEN_COMMIT_PATTERNS.some((pattern) =>
 		pattern.test(message.trim()),
 	);
 }
 
-function getHistoryType(message: string): PostHistoryType {
-	const normalized = message.trim().toLowerCase();
+export function getHistoryType(message: string): PostHistoryType {
+	const normalized = message.trim();
 
-	if (normalized.startsWith("feat")) {
+	if (FEATURE_COMMIT_PATTERN.test(normalized)) {
 		return "feat";
 	}
-	if (normalized.startsWith("fix")) {
+	if (FIX_COMMIT_PATTERNS.some((pattern) => pattern.test(normalized))) {
 		return "fix";
 	}
-	if (/^(content|post|article|update)(\(.+\))?!?:/.test(normalized)) {
+	if (CONTENT_COMMIT_PATTERNS.some((pattern) => pattern.test(normalized))) {
 		return "content";
 	}
 	return "other";
 }
 
-function getHistoryTypeLabel(type: PostHistoryType) {
+export function getHistoryTypeLabel(type: PostHistoryType) {
 	switch (type) {
 		case "feat":
 			return "Feature";
@@ -224,7 +230,9 @@ async function getGitHubRepoSlug() {
 	}
 
 	try {
-		const remoteUrl = (await git.raw(["config", "--get", "remote.origin.url"])).trim();
+		const remoteUrl = (
+			await git.raw(["config", "--get", "remote.origin.url"])
+		).trim();
 		return parseGitHubRepoSlug(remoteUrl);
 	} catch (_e) {
 		return "gakiyukr/fuwari";
@@ -233,8 +241,12 @@ async function getGitHubRepoSlug() {
 
 function parseGitHubRepoSlug(remoteUrl: string) {
 	const match =
-		remoteUrl.match(/github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/.]+)(?:\.git)?$/) ??
-		remoteUrl.match(/^https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/.]+)(?:\.git)?$/);
+		remoteUrl.match(
+			/github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/.]+)(?:\.git)?$/,
+		) ??
+		remoteUrl.match(
+			/^https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/.]+)(?:\.git)?$/,
+		);
 
 	if (!match?.groups) {
 		return "gakiyukr/fuwari";

@@ -1,180 +1,142 @@
-# Fuwari 写作与维护速查表
+# Fuwari 寫作與維護手冊
 
-这份文档记录当前站点支持的特殊 Markdown 语法、自定义组件，以及本地常用维护脚本。它适合在写文章、排版和提交文章时快速查阅。
+本手冊記錄目前網站實際支援的文章格式、Markdown 擴充功能、文章頁自動行為與維護命令。修改功能後，應同步更新本文件，避免操作方式與程式行為脫節。
 
----
+## 1. 快速開始
 
-## 1. 文章 Frontmatter
+### 環境需求
 
-文章通常放在 `src/content/posts/` 下，文件扩展名可以是 `.md` 或 `.mdx`。
+- Node.js 20 或以上版本
+- pnpm 10
 
-常用 frontmatter 示例：
+安裝依賴並啟動開發伺服器：
+
+```powershell
+pnpm install
+pnpm dev
+```
+
+本地網站預設位址：
+
+```text
+http://127.0.0.1:4321/
+```
+
+### 文章目錄
+
+文章放在 `src/content/posts/`。建議每篇文章使用獨立目錄，正文固定命名為 `index.md`：
+
+```text
+src/content/posts/my-post/
+├── index.md
+├── cover.jpg
+└── screenshot.png
+```
+
+這種結構便於管理文章專屬圖片，也符合 PGP 建置簽章腳本掃描 `**/index.md` 的方式。
+
+## 2. 文章 Frontmatter
+
+每篇文章必須以 YAML frontmatter 開頭：
 
 ```yaml
 ---
-title: 文章标题
+title: 文章標題
 published: 2026-04-18
 updated: 2026-04-20
-description: 简短摘要
+description: 簡短摘要
 image: ./cover.jpg
 tags:
   - 旅行
 category: 旅行
 draft: false
-lang: ''
+lang: ""
 ---
 ```
 
-说明：
+### 欄位說明
 
-- `title` 是文章标题，也是自动提交脚本生成提交信息时会读取的字段。
-- `description` 会用于文章摘要，也会被 `pnpm post-commit` 放进提交信息。
-- `published` 使用 `YYYY-MM-DD` 格式。
-- `updated` 可选，用于标记文章最后修改日期；没有修改日期时可以不写。
-- `image` 是文章封面图。可以写网络图片、`public` 目录下的绝对路径，或相对于当前 Markdown 文件的本地图片，例如 `./cover.jpg`。
-- `draft: true` 表示草稿，`draft: false` 表示发布。
-- `tags` 和 `category` 用于归档与筛选。
-- `prevTitle`、`prevSlug`、`nextTitle`、`nextSlug` 是内部字段，正常写文章不要手动填写。
+| 欄位 | 必填 | 用途 |
+| --- | --- | --- |
+| `title` | 是 | 文章標題，也會供自動提交腳本產生提交訊息。 |
+| `published` | 是 | 發布日期，使用 `YYYY-MM-DD`。 |
+| `updated` | 否 | 文章內容最後更新日期。沒有更新時可省略。 |
+| `description` | 否 | 文章摘要、SEO 描述及自動提交訊息內容。 |
+| `image` | 否 | 封面圖片，可使用網路網址、公開路徑或相對路徑。 |
+| `tags` | 否 | 標籤清單，用於彙整與篩選。 |
+| `category` | 否 | 文章分類。 |
+| `draft` | 否 | `true` 為草稿，預設為 `false`。 |
+| `lang` | 否 | 文章語言與全站語言不同時才填寫。 |
 
-草稿显示规则：
+注意事項：
 
-- 本地开发环境会显示草稿，方便预览。
-- 生产构建会隐藏 `draft: true` 的文章。
+- 空字串必須寫成 `description: ""`，不能只寫 `description:`，否則 YAML 會解析為 `null`，導致內容模型檢查失敗。
+- `prevTitle`、`prevSlug`、`nextTitle`、`nextSlug` 是內部欄位，不要手動填寫。
+- 本地開發環境會顯示草稿；正式建置會排除 `draft: true` 的文章。
+- 相對圖片路徑以目前 Markdown 檔案所在目錄為基準，例如 `image: ./cover.jpg`。
 
-如果文章有标题图片或配图，推荐使用文章子目录，把正文写成 `index.md`，图片放在同一目录：
+## 3. Markdown 擴充語法
 
-```text
-src/content/posts/my-post/
-├── index.md
-└── cover.jpeg
-```
+### 3.1 隱藏文字
 
-然后在 `index.md` 的 frontmatter 里写：
-
-```yaml
-image: ./cover.jpeg
-```
-
-这种写法最适合文章专属封面图，移动、备份和删除文章时也更好整理。
-
----
-
-## 2. Spoiler 隐藏文字
-
-站点支持防剧透隐藏文字。被隐藏内容默认以遮罩形式显示，鼠标悬停后显示正文。
-
-语法：
+使用雙豎線建立防劇透遮罩，滑鼠停留後顯示內容：
 
 ```markdown
-这是一段正常文字，||这是一段被隐藏的内容||，然后段落继续。
+這是一般文字，||這是隱藏內容||。
 ```
 
-草稿里还展示了文本指令写法，这种写法可以在隐藏内容里继续使用 Markdown：
+需要在隱藏內容中使用 Markdown 時，可使用文字指令：
 
 ```markdown
-The content :spoiler[is hidden **ayyy**]!
+這段內容 :spoiler[預設隱藏 **並支援粗體**]。
 ```
 
-适合用途：
+### 3.2 提示框
 
-- 剧透内容
-- 答案折叠
-- 不希望第一眼看到的补充信息
+支援 `tip`、`note`、`important`、`warning`、`caution`：
 
----
-
-## 3. Admonitions 提示框
-
-推荐使用 `:::` 语法写提示框。
-
-```markdown
+````markdown
 :::tip
-这是一个技巧提示。
+這是一則技巧提示。
 :::
 
-:::note
-这是普通笔记。
+:::warning[自訂標題]
+這是一則警告。
 :::
+````
 
-:::important
-这是重要信息。
-:::
-
-:::warning
-这是警告内容。
-:::
-
-:::caution
-这是严重风险提示。
-:::
-```
-
-提示框可以自定义标题：
-
-```markdown
-:::note[自定义标题]
-这是带自定义标题的笔记。
-:::
-```
-
-支持的类型：
-
-- `tip`
-- `note`
-- `important`
-- `warning`
-- `caution`
-
-也支持 GitHub 风格的 admonition：
+也支援 GitHub 風格語法：
 
 ```markdown
 > [!NOTE]
-> 这是一段 GitHub 风格提示。
+> 這是一則普通提示。
 ```
 
----
-
-## 4. URL 预览卡片
-
-外部链接可以写成 URL 卡片。页面渲染时会尝试抓取网站图标、标题和描述。
+### 3.3 URL 預覽卡片
 
 ```markdown
-::url{href="https://google.com"}
+::url{href="https://example.com"}
 ```
 
-注意：
+URL 卡片會動態取得網站圖示、標題與描述。外部服務不可用時，卡片可能無法載入完整資訊。
 
-- 这个组件适合展示外部网页。
-- 数据由前端动态获取，网络不可用时可能只显示加载或错误状态。
-
----
-
-## 5. GitHub 仓库卡片
-
-可以用 GitHub 卡片展示仓库信息。
+### 3.4 GitHub 倉庫卡片
 
 ```markdown
 ::github{repo="saicaca/fuwari"}
 ```
 
-说明：
+`repo` 必須使用 `owner/repo` 格式。卡片會透過 GitHub API 顯示倉庫資訊。
 
-- `repo` 格式是 `owner/repo`。
-- 组件会请求 GitHub API 显示仓库名称、简介、星标、分叉和许可证等信息。
+### 3.5 KaTeX 數學公式
 
----
-
-## 6. 数学公式 KaTeX
-
-站点通过 `remark-math` 和 `rehype-katex` 支持 LaTeX 数学公式。
-
-行内公式：
+行內公式：
 
 ```markdown
-这是一个著名公式 $E = mc^2$。
+質能等價公式為 $E = mc^2$。
 ```
 
-块级公式：
+區塊公式：
 
 ```markdown
 $$
@@ -182,13 +144,9 @@ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
 $$
 ```
 
----
+### 3.6 Expressive Code
 
-## 7. Expressive Code 代码块
-
-代码块支持文件名、行高亮、增删标记和折叠区间。
-
-带文件名：
+指定檔名：
 
 ````markdown
 ```javascript title="app.js"
@@ -196,336 +154,245 @@ console.log("Hello Fuwari!");
 ```
 ````
 
-指定行高亮与增删：
+標示行號及增刪內容：
 
 ````markdown
 ```python {1,3-5} ins={2} del={6}
-# 第 1、3、4、5 行会高亮
-# 第 2 行会显示新增效果
-# 第 6 行会显示删除效果
+# 第 1、3、4、5 行會醒目顯示
+# 第 2 行會顯示新增效果
+# 中間內容
+# 中間內容
+# 中間內容
+# 第 6 行會顯示刪除效果
 ```
 ````
 
-折叠部分代码：
+常用參數：
 
-````markdown
-```html collapse={2-8}
-<ul>
-  <li>隐藏的项目 1</li>
-  <li>隐藏的项目 2</li>
-  <!-- 中间内容默认折叠 -->
-</ul>
-```
-````
+| 參數 | 用途 |
+| --- | --- |
+| `title="app.js"` | 顯示檔名或標題。 |
+| `{1,3-5}` | 醒目顯示指定行。 |
+| `ins={2}` | 標示新增行。 |
+| `del={6}` | 標示刪除行。 |
+| `collapse={2-8}` | 預設折疊指定範圍。 |
+| `frame="none"` | 隱藏程式碼框架。 |
+| `wrap=false` | 停用自動換行。 |
+| `showLineNumbers` | 顯示行號。 |
+| `startLineNumber=5` | 指定起始行號。 |
 
-草稿里的 `expressive-code.md` 还展示了这些常用参数：
-
-````markdown
-```bash title="PowerShell terminal example"
-echo "带标题的终端代码块"
-```
-
-```sh frame="none"
-echo "不显示代码框架"
-```
-
-```diff lang="js"
-- console.log("old")
-+ console.log("new")
-```
-
-```js wrap=false
-const longText = "这段很长的内容不会自动换行"
-```
-
-```js showLineNumbers startLineNumber=5
-console.log("从第 5 行开始显示行号")
-```
-
-```ansi
-ANSI 颜色输出也可以渲染
-```
-````
-
----
-
-## 8. Mermaid 图表
-
-文章可以通过 `mermaid` 代码块绘制流程图、时序图、状态图等。
+### 3.7 Mermaid 圖表
 
 ````markdown
 ```mermaid
 flowchart TD
-  A[开始] --> B{是否完成?}
-  B -- 是 --> C[发布]
-  B -- 否 --> D[继续修改]
+  A[開始] --> B{是否完成？}
+  B -- 是 --> C[發布]
+  B -- 否 --> D[繼續修改]
   D --> B
 ```
 ````
 
-适合用途：
+可用於流程圖、時序圖、狀態圖與架構圖。
 
-- 技术流程说明
-- 系统架构草图
-- 时序图
-- 决策流程
-
----
-
-## 9. 常规 Markdown 扩展
-
-草稿里的 `markdown.md` 展示了几种 Pandoc/GFM 风格写法，适合偶尔需要更复杂排版时使用。
-
-脚注：
+### 3.8 腳註
 
 ```markdown
-这里有一个脚注引用[^1]。
+這裡有一個腳註引用[^1]。
 
-[^1]: 脚注内容写在这里。
+[^1]: 腳註內容寫在這裡。
 ```
 
-定义列表：
+腳註定義不會留在 Markdown 原位置。渲染器會把所有腳註集中到文章尾部，並自動產生 `Footnotes` 區塊。
+
+不要在腳註定義前另外加入只有標題、沒有一般內容的 `## 參考資料`，否則頁面會同時出現空的「參考資料」與自動腳註區。若需要自訂「參考資料」標題，請改用普通編號清單，不要使用 `[^1]` 腳註語法。
+
+### 3.9 表格
 
 ```markdown
-apples
-: Good for making applesauce.
-
-oranges
-: Citrus!
-```
-
-行块：
-
-```markdown
-| Line one
-| Line two
-| Line three
-```
-
-表格优先使用普通 Markdown 表格：
-
-```markdown
-| 尺寸 | 材质 | 颜色 |
+| 尺寸 | 材質 | 顏色 |
 | --- | --- | --- |
 | 9 | leather | brown |
 ```
 
----
+### 3.10 影片嵌入
 
-## 10. 视频嵌入
-
-草稿里的 `video.md` 使用原始 HTML `<iframe>` 嵌入视频。直接复制 YouTube、Bilibili 等平台提供的嵌入代码即可。
-
-YouTube：
+可以直接使用影片平台提供的 `<iframe>`：
 
 ```html
-<iframe width="100%" height="468" src="https://www.youtube.com/embed/5gIf0_xpFPI" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+<iframe
+  width="100%"
+  height="468"
+  src="https://www.youtube.com/embed/VIDEO_ID"
+  title="YouTube video player"
+  frameborder="0"
+  allowfullscreen>
+</iframe>
 ```
 
-Bilibili：
+- `width` 建議使用 `100%`，避免在行動裝置上溢出。
+- 不要把 `<iframe>` 放進 Markdown 程式碼區塊，否則只會顯示原始碼。
+- 僅嵌入可信任來源的內容。
 
-```html
-<iframe width="100%" height="468" src="//player.bilibili.com/player.html?bvid=BV1fK4y1s7Qf&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+### 3.11 外部連結
+
+一般 Markdown 連結不需要額外處理：
+
+```markdown
+[OpenAI](https://openai.com)
+[站內文章](/posts/example/)
 ```
 
-建议：
-
-- `width` 使用 `100%`，避免移动端溢出。
-- `height` 可以先用 `468`，如果画面比例不合适再按文章实际效果调整。
-- 文章里可以直接放 HTML，但不要把 iframe 放进代码块，否则只会显示源码。
-
----
-
-## 11. 外链自动处理
-
-Markdown 里的外部链接会在构建时自动加上安全属性：
+外部 HTTP／HTTPS 連結會自動加入：
 
 ```html
 target="_blank"
 rel="noopener noreferrer"
 ```
 
-普通写法即可：
+站內相對連結、錨點、`mailto:` 與 `tel:` 不會被視為外部連結。
 
-```markdown
-[OpenAI](https://openai.com)
-[站内文章](/posts/example/)
-```
+## 4. 文章頁自動功能
 
-说明：
+### 4.1 摘要、字數與閱讀時間
 
-- `http` 和 `https` 外部链接会在新标签页打开。
-- 站内相对链接、锚点、`mailto:`、`tel:` 不会被当成外链处理。
+- 文章摘要優先使用 frontmatter 的 `description`。
+- Markdown 處理流程會計算字數、閱讀時間與自動摘要。
+- 字數與閱讀時間會顯示在文章頁。
 
----
+### 4.2 發布與更新日期
 
-## 12. 自动摘要与阅读时间
+- 顯示用的最後更新時間優先採用最新一筆有效 Git 歷史記錄。
+- 找不到 Git 歷史時，才使用 frontmatter 的 `updated`。
+- 文章時效判斷使用 frontmatter 的 `published` 與 `updated`，不會因一般 Git 提交而重設。
 
-项目包含 `remarkExcerpt` 和 `remarkReadingTime`。
+### 4.3 修訂歷史
 
-实际效果：
-
-- 文章卡片可以使用 frontmatter 的 `description`。
-- 如果没有合适的摘要，渲染逻辑可以使用 remark 生成的 excerpt。
-- 阅读时间和字数会在文章卡片或文章页中展示。
-
----
-
-## 13. 新建文章脚本
-
-命令：
+文章頁會對目前文章檔案執行等同於以下命令的查詢：
 
 ```powershell
-pnpm new-post -- <filename>
+git log --follow -- <article-file>
 ```
 
-行为：
+每筆記錄會顯示提交時間、類型、短雜湊與提交訊息。提交訊息同時決定歷史分類：
 
-- 如果没有传入文件名，会报错退出。
-- 如果文件名没有 `.md` 或 `.mdx` 后缀，会自动补成 `.md`。
-- 文件会创建到 `src/content/posts/` 下。
-- 支持多级路径，例如 `pnpm new-post -- travel/hong-kong-note`。
-- 如果目标文件已经存在，会报错退出，避免覆盖旧文章。
-- 会自动写入基础 frontmatter。
+| 類型 | 推薦提交格式 | 舊格式相容性 |
+| --- | --- | --- |
+| Feature | `feat: add article feature` | 無。 |
+| Fix | `fix: correct outdated link` | `Fix ...`。 |
+| Content | `content: update article` | `post:`、`posts:`、`article:`、`update:`，以及以 `Add`、`Remove`、`Refine`、`Clarify`、`Expand`、`Polish`、`Refresh`、`Update`、`Publish` 開頭的訊息。 |
+| Note | 其他未識別但仍有意義的提交 | 其他一般提交訊息。 |
 
-生成的 frontmatter：
-
-```yaml
----
-title: <filename>
-published: <当天日期>
-description: ''
-image: ''
-tags: []
-category: ''
-draft: false 
-lang: ''
----
-```
-
----
-
-## 14. 文章自动提交脚本
-
-命令：
-
-```powershell
-pnpm post-commit
-```
-
-行为：
-
-- 读取当前 Git 工作区状态。
-- 只处理 `src/content/posts/` 下变动过的 `.md` 和 `.mdx` 文件。
-- 支持 Git rename 记录，会取重命名后的新路径。
-- 跳过已删除的文章文件。
-- 读取文章 frontmatter 中的 `title` 和 `description`。
-- 每篇文章单独 `git add`。
-- 每篇文章单独 `git commit`，并用 pathspec 限定只提交当前文章文件。
-- 所有文章提交完成后执行 `git push`。
-
-提交信息格式：
+下列維護型提交不會顯示，也不計入文章更新次數：
 
 ```text
-posts: publish "Title": description
-posts: update "Title": description
+chore:
+style:
+ci:
+build:
+test:
+lint
+format
 ```
 
-注意：
+文章內容修改應優先使用 `content:`；修正錯誤資料、錯字或失效連結可使用 `fix:`。提交訊息必須使用英文。
 
-- 这个脚本会真实提交并推送，不是 dry-run。
-- 如果没有变动文章，会报错退出。
-- 如果文章缺少 `title`，会跳过那篇文章。
-- 它只适合处理文章文件；如果同时有代码、配置或 `.obsidian` 改动，建议单独提交。
+### 4.4 文章時效與活動標籤
 
----
+- 發布 14 天內的文章會顯示 `NEW`。
+- frontmatter 的 `updated` 與發布日期不同，且更新不超過 30 天時，會顯示 `UPDATED`。
+- 文章時效提示會依最後內容日期標示輕度過期、建議複核或嚴重過時。
 
-## 15. 图片排版修复脚本
+### 4.5 文章底部功能
 
-命令：
+- `licenseConfig.enable` 啟用時顯示授權資訊。
+- `gitHubEditConfig.enable` 啟用時顯示 GitHub 編輯入口。
+- 留言設定完整時顯示 Giscus 留言區。
+- RSS、Sitemap 與 robots 由對應的 Astro 路由及整合自動產生。
+
+### 4.6 PGP 狀態
+
+建置期 PGP 簽章腳本仍然保留，但文章頁的簽名驗證查詢、資料傳遞及側邊欄驗證卡片目前已暫時停用。
+
+## 5. 寫作與維護腳本
+
+### 5.1 建立文章
+
+```powershell
+pnpm new-post -- my-post/index.md
+```
+
+腳本會：
+
+- 在 `src/content/posts/` 下建立檔案。
+- 自動補上 `.md` 副檔名。
+- 支援多層目錄。
+- 拒絕覆寫已存在的檔案。
+- 產生基本 frontmatter。
+- 初始 `title` 會直接使用命令中的檔名參數；建立後應改成正常顯示的文章標題。
+
+### 5.2 修正相鄰圖片排版
+
+只檢查、不寫入：
 
 ```powershell
 pnpm fix-images
 ```
 
-默认行为：
-
-- 扫描 `src/content/posts/` 下所有 `.md` 和 `.mdx` 文件。
-- 检查连续排列的 Markdown 图片行。
-- 检查连续排列的单行 HTML `<img>` 图片行。
-- 跳过代码块中的内容，避免误改示例代码。
-- 默认只报告会修改哪些文件，不会写入。
-
-示例：
-
-```markdown
-![](./a.jpg)
-![](./b.jpg)
-```
-
-会整理为：
-
-```markdown
-![](./a.jpg)
-
-![](./b.jpg)
-```
-
-真正写入文件：
+實際修正：
 
 ```powershell
 pnpm fix-images -- --write
 ```
 
----
+腳本會在連續 Markdown 圖片或單行 HTML `<img>` 之間加入空行，並跳過程式碼區塊。
 
-## 16. 本地开发与代码维护命令
-
-开发服务器：
+### 5.3 自動提交文章
 
 ```powershell
-pnpm dev
-pnpm start
+pnpm post-commit
 ```
 
-这两个命令等价，都会启动 Astro 本地开发服务器。开发环境中草稿文章也会显示。
+腳本會：
 
-生产预览：
+1. 找出 `src/content/posts/` 下所有已變更的 `.md` 與 `.mdx`。
+2. 跳過刪除項目，並支援重新命名後的路徑。
+3. 讀取 `title` 與 `description`。
+4. 每篇文章分別暫存及提交。
+5. 全部完成後直接執行 `git push`。
 
-```powershell
-pnpm build
-pnpm preview
+提交格式：
+
+```text
+content: publish "Title": description
+content: update "Title": description
 ```
 
-- `pnpm build` 会生成 `dist/`，并在构建后执行 PGP 签名和 Pagefind 搜索索引。
-- `pnpm preview` 用来预览已经构建好的站点。
-- 搜索功能依赖 Pagefind，只有生产构建后才有完整搜索索引；开发环境里搜索会显示开发提示。
+重要限制：
 
-检查和格式化：
+- 此命令會真實提交並推送，沒有 dry-run。
+- 缺少 `title` 的文章會被跳過。
+- 腳本只提交文章檔案，不處理圖片、程式碼、設定或 `.obsidian` 內容。
+- 工作區同時包含其他變更時，應先檢查 `git status` 並拆分提交。
 
-```powershell
-pnpm check
-pnpm type-check
-pnpm format
-pnpm lint
-```
+## 6. 開發、檢查與建置
 
-- `pnpm check` 运行 Astro 检查。
-- `pnpm type-check` 运行 TypeScript 类型检查。
-- `pnpm format` 会格式化 `src/`。
-- `pnpm lint` 会用 Biome 检查并自动修复 `src/`。
+### 常用命令
 
----
+| 命令 | 用途 |
+| --- | --- |
+| `pnpm dev` | 啟動 Astro 開發伺服器。 |
+| `pnpm start` | 與 `pnpm dev` 相同。 |
+| `pnpm check` | 執行 Astro 診斷。 |
+| `pnpm type-check` | 執行 TypeScript 類型檢查。 |
+| `pnpm format` | 使用 Biome 格式化 `src/`。 |
+| `pnpm lint` | 使用 Biome 檢查並自動修正 `src/`。 |
+| `pnpm build` | 建立正式網站、簽章與搜尋索引。 |
+| `pnpm preview` | 預覽 `dist/` 正式建置結果。 |
 
-## 17. PGP 文章签名构建
+### 正式建置流程
 
-构建命令里已经包含 PGP 签名流程：
-
-```powershell
-pnpm build
-```
-
-实际执行顺序是：
+`pnpm build` 依序執行：
 
 ```text
 astro build
@@ -533,40 +400,16 @@ node scripts/sign-pgp-posts.js
 pagefind --site dist
 ```
 
-PGP 签名脚本会：
+- Astro 輸出至 `dist/`。
+- PGP 腳本為正式文章產生 detached signature。
+- Pagefind 建立全文搜尋索引。
+- 開發環境沒有完整 Pagefind 索引，搜尋元件會顯示開發提示。
 
-- 扫描 `src/content/posts/**/index.md`。
-- 跳过 `Draft` 文件夹、`.obsidian` 文件夹和 `draft: true` 的文章。
-- 为每篇正式文章生成 detached signature。
-- 输出到 `dist/pgp/posts/<slug>.md.asc`。
-- 输出公钥到 `dist/pgp/gakiyukr.asc`。
+## 7. 環境變數
 
-需要的环境变量：
+環境變數範例位於 `.env.example`。實際密鑰只應放在未追蹤的 `.env` 或部署平台密鑰設定中。
 
-```env
-PUBLIC_PGP_SIGNER=gakiyukr
-PUBLIC_PGP_FINGERPRINT=你的公钥指纹
-PGP_SIGNING_ENABLED=true
-PGP_REQUIRE_SIGNATURES=true
-PGP_PRIVATE_KEY_BASE64=你的私钥base64
-PGP_PRIVATE_KEY_PASSPHRASE=你的私钥密码
-```
-
-说明：
-
-- `PUBLIC_PGP_SIGNER` 和 `PUBLIC_PGP_FINGERPRINT` 用于前端展示。
-- `PGP_SIGNING_ENABLED=true` 才会启用构建签名。
-- `PGP_REQUIRE_SIGNATURES=true` 时，如果缺少私钥会让构建失败，避免静默漏签。
-- `PGP_PRIVATE_KEY_BASE64` 是 armored 私钥文本转成 Base64 后的值。
-- 也支持 `PGP_PRIVATE_KEY`，但部署平台里更推荐使用 Base64，避免换行问题。
-
----
-
-## 18. 站点环境变量
-
-`.env.example` 里记录了当前站点会读取的环境变量。
-
-Umami 统计：
+### Umami
 
 ```env
 PUBLIC_UMAMI_SRC=
@@ -574,76 +417,48 @@ PUBLIC_UMAMI_WEBSITE_ID=
 PUBLIC_UMAMI_SHARE_URL=
 ```
 
-- `PUBLIC_UMAMI_SRC` 和 `PUBLIC_UMAMI_WEBSITE_ID` 都存在时才启用统计。
-- `PUBLIC_UMAMI_SHARE_URL` 用于统计分享页链接。
+- `PUBLIC_UMAMI_SRC` 與 `PUBLIC_UMAMI_WEBSITE_ID` 同時存在時才啟用分析。
+- `PUBLIC_UMAMI_SHARE_URL` 用於統計分享頁連結。
 
-PGP 签名：
+### PGP 建置簽章
 
 ```env
 PUBLIC_PGP_SIGNER=
 PUBLIC_PGP_FINGERPRINT=
-PGP_SIGNING_ENABLED=
-PGP_REQUIRE_SIGNATURES=
+PGP_SIGNING_ENABLED=false
+PGP_REQUIRE_SIGNATURES=false
 PGP_PRIVATE_KEY_BASE64=
 PGP_PRIVATE_KEY_PASSPHRASE=
 ```
 
-其他：
+- `PGP_SIGNING_ENABLED=true` 才會啟用文章簽章。
+- `PGP_REQUIRE_SIGNATURES=true` 時，缺少必要密鑰會使建置失敗。
+- `PGP_PRIVATE_KEY_BASE64` 用於保存 Base64 編碼的 armored 私鑰。
+- 腳本也支援 `PGP_PRIVATE_KEY`，但部署環境建議使用 Base64，避免多行文字問題。
+- 簽章輸出至 `dist/pgp/posts/<slug>.md.asc`，公鑰輸出至 `dist/pgp/gakiyukr.asc`。
+
+### 其他
 
 ```env
 GEMINI_API_KEY=
 ```
 
-当前代码里没有直接使用 `GEMINI_API_KEY`，可以先保留为空。
+目前網站程式沒有直接使用 `GEMINI_API_KEY`。
 
----
+## 8. 建議工作流程
 
-## 19. 文章页自动功能
+### 只修改文章
 
-这些功能不需要在文章里手写组件，只要文章正常放在 `src/content/posts/` 下就会自动生效。
+1. 執行 `pnpm dev` 預覽文章。
+2. 檢查 frontmatter、圖片、腳註與行動版排版。
+3. 必要時執行 `pnpm fix-images -- --write`。
+4. 執行 `pnpm check`。
+5. 使用 `content:` 或 `fix:` 撰寫英文簽名提交；也可在確認工作區乾淨後使用 `pnpm post-commit`。
 
-修订历史：
+### 同時修改文章與程式碼
 
-- 文章页会读取当前文章文件的 Git 历史。
-- 如果有历史记录，会显示“本文更新记录”。
-- 最近一次提交会用于“最后修改”日期。
-- GitHub 提交签名状态会显示在 PGP 签名卡片里。
-
-内容新鲜度提示：
-
-- 文章页会根据 `published`、`updated` 和 Git 最新提交日期显示文章是否较旧。
-- 如果文章有修订历史，会提供跳转到更新记录的入口。
-
-文章底部功能：
-
-- 如果 `licenseConfig.enable` 为 `true`，文章底部会显示许可证。
-- 如果 `gitHubEditConfig.enable` 为 `true`，文章底部会显示 GitHub 编辑入口。
-- 如果评论配置完整，文章底部会显示 Giscus 评论区。
-
-RSS、Sitemap、robots：
-
-- `src/pages/rss.xml.ts` 会生成 RSS。
-- `@astrojs/sitemap` 会生成站点地图。
-- `src/pages/robots.txt.ts` 会生成 robots 文件并指向 sitemap。
-
----
-
-## 20. 常用维护命令
-
-```powershell
-pnpm dev
-pnpm check
-pnpm build
-pnpm preview
-pnpm fix-images
-pnpm fix-images -- --write
-pnpm post-commit
-```
-
-建议流程：
-
-1. 写文章或修改内容。
-2. 如果插入了多张连续图片，运行 `pnpm fix-images -- --write`。
-3. 只改文章时，可以运行 `pnpm post-commit`。
-4. 如果同时改了代码或配置，先手动拆分提交。
-5. 发布前需要确认站点可构建时，运行 `pnpm build`。
+1. 先執行 `git status` 與 `git diff` 確認範圍。
+2. 將文章、程式碼及本機設定拆成不同提交。
+3. 每次只暫存明確屬於該提交的檔案。
+4. 執行 `pnpm check`；正式發布前再執行 `pnpm build`。
+5. 依倉庫規範建立英文簽名提交，再透過設定的代理推送。

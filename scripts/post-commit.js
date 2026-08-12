@@ -78,7 +78,7 @@ function buildCommitMessage(file, frontmatter) {
 	const description = frontmatter.description?.trim();
 	const suffix = description ? `: ${description}` : "";
 
-	return `posts: ${action} "${title}"${suffix}`;
+	return `content: ${action} "${title}"${suffix}`;
 }
 
 function main() {
@@ -90,7 +90,9 @@ function main() {
 	}
 
 	console.log(`Found ${postFiles.length} changed post(s):`);
-	postFiles.forEach((file) => console.log(`  - ${file}`));
+	postFiles.forEach((file) => {
+		console.log(`  - ${file}`);
+	});
 
 	for (const postFile of postFiles) {
 		const content = fs.readFileSync(postFile, "utf-8");

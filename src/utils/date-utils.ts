@@ -38,7 +38,6 @@ export function getElapsedCalendarDays(
 ) {
 	return Math.max(
 		0,
-		getCalendarDayNumber(now, timeZone) -
-			getCalendarDayNumber(date, timeZone),
+		getCalendarDayNumber(now, timeZone) - getCalendarDayNumber(date, timeZone),
 	);
 }

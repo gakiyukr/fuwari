@@ -3,7 +3,7 @@ import { visit } from "unist-util-visit";
 export function rehypeSpoiler() {
 	return (tree) => {
 		visit(tree, "text", (node, index, parent) => {
-			if (!node.value || !node.value.includes("||")) return;
+			if (!node.value?.includes("||")) return;
 
 			// Match all occurrences of ||...||
 			const regex = /\|\|(.*?)\|\|/g;

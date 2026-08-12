@@ -26,7 +26,7 @@ export function rehypeMermaid() {
 			if (node.tagName !== "pre") return;
 
 			const code = node.children?.[0];
-			if (!code || code.type !== "element" || code.tagName !== "code") return;
+			if (code?.type !== "element" || code.tagName !== "code") return;
 			if (getCodeLanguage(code) !== "mermaid") return;
 
 			parent.children[index] = {

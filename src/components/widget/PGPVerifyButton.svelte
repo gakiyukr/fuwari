@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Icon from "@iconify/svelte";
+import Icon from "@iconify/svelte";
 
-	export let signatureUrl: string;
-	export let sourceUrl: string;
-	export let publicKeyPageUrl: string;
+export let signatureUrl: string;
+export let sourceUrl: string;
+export let publicKeyPageUrl: string;
 </script>
 
 <div class="pgp-actions">

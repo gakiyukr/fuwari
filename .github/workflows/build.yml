@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: 執行文章歷史測試
+        run: pnpm test
+
       - name: Run Astro Check
         run: pnpm astro check
 
