@@ -40,13 +40,8 @@ jobs:
       - name: 執行文章歷史測試
         run: pnpm test
 
-      # astro check 目前因上游 emnapi 2.0-beta 與 wasm-runtime 的 API 錯配而崩潰，
-      # 暫以 tsc 型別檢查替代；上游修復 @astrojs/check 後可還原。
-      - name: Sync content types
-        run: pnpm astro sync
-
-      - name: Run TypeScript type check
-        run: pnpm type-check
+      - name: Run Astro Check
+        run: pnpm astro check
 
   build:
     strategy:
