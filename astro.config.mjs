@@ -1,6 +1,6 @@
+import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
-import tailwind from "@astrojs/tailwind";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import swup from "@swup/astro";
@@ -15,8 +15,8 @@ import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
-import { expressiveCodeConfig } from "./src/config.ts";
 import { visit } from "unist-util-visit";
+import { expressiveCodeConfig } from "./src/config.ts";
 import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
@@ -24,10 +24,10 @@ import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.
 import { UrlCardComponent } from "./src/plugins/rehype-component-url-card.mjs";
 import { rehypeExternalLinks } from "./src/plugins/rehype-external-links.mjs";
 import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
+import { rehypeSpoiler } from "./src/plugins/rehype-spoiler.mjs";
 import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
-import { rehypeSpoiler } from "./src/plugins/rehype-spoiler.mjs";
 
 // https://astro.build/config
 export default defineConfig({
@@ -38,9 +38,6 @@ export default defineConfig({
 	base: "/",
 	trailingSlash: "always",
 	integrations: [
-		tailwind({
-			nesting: true,
-		}),
 		swup({
 			theme: false,
 			animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
@@ -111,7 +108,7 @@ export default defineConfig({
 		svelte(),
 		sitemap(),
 	],
-	markdown: {
+	markdown: unified({
 		remarkPlugins: [
 			remarkMath,
 			remarkReadingTime,
@@ -120,15 +117,15 @@ export default defineConfig({
 			remarkDirective,
 			remarkSectionize,
 			parseDirectiveNode,
-			],
-			rehypePlugins: [
-				rehypeMermaid,
-				rehypeSpoiler,
-				rehypeKatex,
-				rehypeSlug,
-				rehypeExternalLinks,
-				[
-					rehypeComponents,
+		],
+		rehypePlugins: [
+			rehypeMermaid,
+			rehypeSpoiler,
+			rehypeKatex,
+			rehypeSlug,
+			rehypeExternalLinks,
+			[
+				rehypeComponents,
 				{
 					components: {
 						url: (x, y) => UrlCardComponent(x, y),
@@ -165,7 +162,7 @@ export default defineConfig({
 				},
 			],
 		],
-	},
+	}),
 	vite: {
 		build: {
 			rollupOptions: {

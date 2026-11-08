@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
 import path from "node:path";
 import { Icon } from "astro-icon/components";
 import I18nKey from "../i18n/i18nKey";
@@ -41,7 +42,7 @@ const className = Astro.props.class;
 const hasCover = image !== undefined && image !== null && image !== "";
 const coverWidth = "28%";
 
-const { remarkPluginFrontmatter } = await entry.render();
+const { remarkPluginFrontmatter } = await render(entry);
 const freshness = getPostFreshness(published, updated);
 const activityBadges = getPostActivityBadges(published, updated);
 ---
