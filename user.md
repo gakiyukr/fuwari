@@ -33,7 +33,7 @@ src/content/posts/my-post/
 └── screenshot.png
 ```
 
-這種結構便於管理文章專屬圖片，也符合 PGP 建置簽章腳本掃描 `**/index.md` 的方式。
+這種結構便於管理文章專屬圖片。
 
 ## 2. 文章 Frontmatter
 
@@ -312,7 +312,7 @@ format
 
 ### 4.6 PGP 狀態
 
-建置期 PGP 簽章腳本仍然保留，但文章頁的簽名驗證查詢、資料傳遞及側邊欄驗證卡片目前已暫時停用。
+PGP 模組已整體注釋停用：`src/config.ts` 的 `pgp` 設定、`src/utils/pgp-utils.ts`、`src/types/pgp.ts`、`src/utils/git-log.ts` 的提交簽章查詢、側邊欄驗證卡片（`PGPSignatureCard.astro`、`PGPVerifyButton.svelte`）與 `.env` 中的 PGP 變數均已注釋，`pnpm build` 也不再執行簽章腳本。相關程式碼以注釋形式保留，恢復功能時逐處取消注釋即可；`scripts/sign-pgp-posts.js` 檔案本身仍保留在 `scripts/` 目錄。
 
 ## 5. 寫作與維護腳本
 
@@ -387,7 +387,7 @@ content: update "Title": description
 | `pnpm type-check` | 執行 TypeScript 類型檢查。 |
 | `pnpm format` | 使用 Biome 格式化 `src/`。 |
 | `pnpm lint` | 使用 Biome 檢查並自動修正 `src/`。 |
-| `pnpm build` | 建立正式網站、簽章與搜尋索引。 |
+| `pnpm build` | 建立正式網站與搜尋索引。 |
 | `pnpm preview` | 預覽 `dist/` 正式建置結果。 |
 
 ### 正式建置流程
@@ -396,14 +396,13 @@ content: update "Title": description
 
 ```text
 astro build
-node scripts/sign-pgp-posts.js
 pagefind --site dist
 ```
 
 - Astro 輸出至 `dist/`。
-- PGP 腳本為正式文章產生 detached signature。
 - Pagefind 建立全文搜尋索引。
 - 開發環境沒有完整 Pagefind 索引，搜尋元件會顯示開發提示。
+- PGP 簽章腳本已從建置流程移除；如需簽章，請先依 4.6 節恢復 PGP 模組，再於 build 命令中加回 `node scripts/sign-pgp-posts.js`。
 
 ## 7. 環境變數
 
@@ -420,7 +419,9 @@ PUBLIC_UMAMI_SHARE_URL=
 - `PUBLIC_UMAMI_SRC` 與 `PUBLIC_UMAMI_WEBSITE_ID` 同時存在時才啟用分析。
 - `PUBLIC_UMAMI_SHARE_URL` 用於統計分享頁連結。
 
-### PGP 建置簽章
+### PGP 建置簽章（已停用）
+
+PGP 模組已整體注釋停用（見 4.6 節），以下變數僅在恢復簽章功能時需要設定。
 
 ```env
 PUBLIC_PGP_SIGNER=

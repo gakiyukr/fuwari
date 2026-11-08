@@ -1,11 +1,14 @@
 <script lang="ts">
-import Icon from "@iconify/svelte";
-
-export let signatureUrl: string;
-export let sourceUrl: string;
-export let publicKeyPageUrl: string;
+// PGP 模組已整體注釋停用；本元件整檔注釋（唯一引用者 PGPSignatureCard.astro 已注釋）。
+// 恢復時取消本檔注釋即可。
+// import Icon from "@iconify/svelte";
+//
+// export let signatureUrl: string;
+// export let sourceUrl: string;
+// export let publicKeyPageUrl: string;
 </script>
 
+<!-- PGP 模組已整體注釋停用；模板整段注釋，恢復時取消注釋。
 <div class="pgp-actions">
 	<a class="pgp-action pgp-action--signature" href={signatureUrl} download>
 		<span class="pgp-action__icon" aria-hidden="true">
@@ -28,8 +31,11 @@ export let publicKeyPageUrl: string;
 		<span>公钥</span>
 	</a>
 </div>
+-->
 
 <style>
+	/* PGP 模組已整體注釋停用；樣式整段注釋，恢復時取消注釋。
+
 	.pgp-actions {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
@@ -76,4 +82,5 @@ export let publicKeyPageUrl: string;
 		font-size: 0.95rem;
 		line-height: 1;
 	}
+	*/
 </style>

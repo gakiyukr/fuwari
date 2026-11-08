@@ -36,7 +36,8 @@ export type SiteConfig = {
 	};
 	comments: CommentsConfig;
 	analytics: AnalyticsConfig;
-	pgp: PGPConfig;
+	// PGP 模組已整體注釋停用；恢復時取消下行與 PGPConfig 型別的注釋。
+	// pgp: PGPConfig;
 
 	favicon: Favicon[];
 };
@@ -134,10 +135,11 @@ export type AnalyticsConfig = {
 	shareId: string;
 };
 
-export type PGPConfig = {
-	enable: boolean;
-	signer: string;
-	publicKeyPath: string;
-	rawPostBaseUrl: string;
-	fingerprint: string;
-};
+// PGP 模組已整體注釋停用；恢復時取消注釋並還原 src/config.ts 的 pgp 設定。
+// export type PGPConfig = {
+// 	enable: boolean;
+// 	signer: string;
+// 	publicKeyPath: string;
+// 	rawPostBaseUrl: string;
+// 	fingerprint: string;
+// };

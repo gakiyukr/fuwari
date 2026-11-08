@@ -1,27 +1,30 @@
 ---
-import { Icon } from "astro-icon/components";
-import type { PGPSignatureInfo } from "@/types/pgp";
-import PGPVerifyButton from "./PGPVerifyButton.svelte";
-
-interface Props {
-	signature: PGPSignatureInfo;
-	class?: string;
-	style?: string;
-}
-
-const { signature, style } = Astro.props;
-const className = Astro.props.class;
-const fingerprint =
-	signature.fingerprint.trim() === "" ? "尚未配置" : signature.fingerprint;
-const articleStatusText = {
-	signed: "Signed",
-	unsigned: "Unsigned",
-	pending: "待接入",
-}[signature.articleStatus];
-const gitCommitText = signature.gitCommit.verified ? "Verified" : "Unverified";
-const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.format})`;
+// PGP 模組已整體注釋停用；本元件整檔注釋，目前無任何引用者（SideBar 掛載點已注釋）。
+// 恢復時取消本檔注釋，並同步還原 types/pgp.ts、pgp-utils.ts 與 SideBar.astro 掛載點。
+// import { Icon } from "astro-icon/components";
+// import type { PGPSignatureInfo } from "@/types/pgp";
+// import PGPVerifyButton from "./PGPVerifyButton.svelte";
+//
+// interface Props {
+// 	signature: PGPSignatureInfo;
+// 	class?: string;
+// 	style?: string;
+// }
+//
+// const { signature, style } = Astro.props;
+// const className = Astro.props.class;
+// const fingerprint =
+// 	signature.fingerprint.trim() === "" ? "尚未配置" : signature.fingerprint;
+// const articleStatusText = {
+// 	signed: "Signed",
+// 	unsigned: "Unsigned",
+// 	pending: "待接入",
+// }[signature.articleStatus];
+// const gitCommitText = signature.gitCommit.verified ? "Verified" : "Unverified";
+// const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.format})`;
 ---
 
+{/* PGP 模組已整體注釋停用；模板整段注釋，恢復時取消注釋。
 <aside class:list={["card-base p-4 pgp-card", className]} style={style}>
 	<div class="pgp-card__header">
 		<div class="pgp-card__icon">
@@ -75,8 +78,11 @@ const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.for
 		publicKeyPageUrl={signature.publicKeyPageUrl}
 	/>
 </aside>
+*/}
 
 <style>
+	/* PGP 模組已整體注釋停用；樣式整段注釋，恢復時取消注釋。
+
 	.pgp-card {
 		overflow: hidden;
 	}
@@ -225,4 +231,5 @@ const gitCommitTitle = `${signature.gitCommit.reason} (${signature.gitCommit.for
 		font-size: 0.72rem;
 		line-height: 1.45;
 	}
+	*/
 </style>
