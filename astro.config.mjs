@@ -153,8 +153,11 @@ export default defineConfig({
 			}),
 		},
 		vite: {
-		build: {
-			rollupOptions: {
+			build: {
+				// Tailwind base 層的巢狀輸出會讓 lightningcss minifier 報錯，暫停 CSS 壓縮；
+				// 上游（Tailwind 3 / lightningcss）修復後可還原為預設壓縮。
+				cssMinify: false,
+				rollupOptions: {
 				onwarn(warning, warn) {
 					// temporarily suppress this warning
 					if (
