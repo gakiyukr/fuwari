@@ -10,7 +10,8 @@
 		"includes": [
 			"**",
 			"!**/src/**/*.css",
-			"!**/src/content/posts/.obsidian/**/*",
+			"!**/src/content/posts/**/*",
+			"!**/src/content/spec/**/*",
 			"!**/src/public/**/*",
 			"!**/dist/**/*",
 			"!**/node_modules/**/*"
