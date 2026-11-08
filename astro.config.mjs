@@ -3,7 +3,6 @@ import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
-import swup from "@swup/astro";
 import { defineConfig, passthroughImageService } from "astro/config";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
@@ -38,20 +37,8 @@ export default defineConfig({
 	base: "/",
 	trailingSlash: "always",
 	integrations: [
-		swup({
-			theme: false,
-			animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
-			// the default value `transition-` cause transition delay
-			// when the Tailwind class `transition-all` is used
-			containers: ["main", "#sidebar", "#toc"],
-			smoothScrolling: true,
-			cache: true,
-			preload: true,
-			accessibility: true,
-			updateHead: true,
-			updateBodyClass: false,
-			globalInstance: true,
-		}),
+		// Swup 頁面轉場改由 src/scripts/init-swup.js 初始化：
+		// @swup/astro 1.8.0 的 injectScript('page') 在 Astro 7 下不會注入任何腳本。
 		icon({
 			include: {
 				"preprocess: vitePreprocess(),": ["*"],
@@ -108,7 +95,8 @@ export default defineConfig({
 		svelte(),
 		sitemap(),
 	],
-	markdown: unified({
+	markdown: {
+		processor: unified({
 		remarkPlugins: [
 			remarkMath,
 			remarkReadingTime,
@@ -160,10 +148,11 @@ export default defineConfig({
 						],
 					},
 				},
-			],
-		],
-	}),
-	vite: {
+					],
+				],
+			}),
+		},
+		vite: {
 		build: {
 			rollupOptions: {
 				onwarn(warning, warn) {
